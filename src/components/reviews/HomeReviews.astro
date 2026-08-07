@@ -8,7 +8,7 @@ const { reviews, unavailable } = await getPublicReviews({
   verifiedOnly: true,
   limit: 8,
 });
-const carouselGroups = reviews.length > 1 ? [0, 1] : [0];
+const carouselReviews = reviews.length > 1 ? [...reviews, ...reviews] : reviews;
 ---
 
 <section class="home-reviews" aria-labelledby="home-reviews-title">
@@ -23,15 +23,15 @@ const carouselGroups = reviews.length > 1 ? [0, 1] : [0];
     {
       reviews.length > 0 ? (
         <div class="home-reviews__carousel" data-home-reviews-carousel>
-          <div class="home-reviews__viewport" tabindex="0" aria-label="Son müşteri yorumları">
-            <ul class="home-reviews__list" data-carousel-track data-loop={reviews.length > 1 ? "true" : "false"}>
-              {carouselGroups.map((_, groupIndex) => (
-                <li class="home-reviews__group" aria-hidden={groupIndex > 0 ? "true" : undefined}>
-                  <ul>
-                    {reviews.map((review) => (
-                      <li><ReviewCard review={review} /></li>
-                    ))}
-                  </ul>
+          <div
+            class="home-reviews__viewport"
+            tabindex="0"
+            aria-label="Son müşteri yorumları"
+          >
+            <ul class="home-reviews__list" data-loop={reviews.length > 1 ? "true" : "false"}>
+              {carouselReviews.map((review, index) => (
+                <li aria-hidden={index >= reviews.length ? "true" : undefined}>
+                  <ReviewCard review={review} />
                 </li>
               ))}
             </ul>
@@ -54,6 +54,30 @@ const carouselGroups = reviews.length > 1 ? [0, 1] : [0];
     </div>
   </Container>
 </section>
+
+<script>
+  const carousel = document.querySelector<HTMLElement>("[data-home-reviews-carousel]");
+  const viewport = carousel?.querySelector<HTMLElement>(".home-reviews__viewport");
+  const track = carousel?.querySelector<HTMLElement>(".home-reviews__list");
+
+  if (carousel && viewport && track) {
+    const originalItems = Array.from(track.children).slice(0, track.children.length / 2) as HTMLElement[];
+
+    const setMarqueeDistance = () => {
+      const firstItem = originalItems[0];
+      const lastItem = originalItems.at(-1);
+      if (!firstItem || !lastItem) return;
+
+      const gap = Number.parseFloat(window.getComputedStyle(track).columnGap || "0");
+      const distance = lastItem.offsetLeft + lastItem.offsetWidth - firstItem.offsetLeft + gap;
+      track.style.setProperty("--marquee-distance", `${Math.round(distance)}px`);
+    };
+
+    window.requestAnimationFrame(setMarqueeDistance);
+    window.setTimeout(setMarqueeDistance, 350);
+    window.addEventListener("resize", setMarqueeDistance);
+  }
+</script>
 
 <style>
   .home-reviews {
@@ -90,10 +114,16 @@ const carouselGroups = reviews.length > 1 ? [0, 1] : [0];
   }
 
   .home-reviews__viewport {
-    overflow: hidden;
+    --review-card-width: min(76vw, 18.5rem);
+    --review-gap: 1rem;
+    overflow-x: auto;
+    overflow-y: visible;
+    overscroll-behavior-x: contain;
     margin-block: -1rem;
     margin-inline: -0.75rem;
     padding: 1rem 0.75rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(11 29 58 / 26%) transparent;
   }
 
   .home-reviews__viewport:focus-visible {
@@ -101,22 +131,17 @@ const carouselGroups = reviews.length > 1 ? [0, 1] : [0];
     outline-offset: 0.35rem;
   }
 
-  .home-reviews__list,
-  .home-reviews__group ul {
+  .home-reviews__list {
     display: flex;
-    gap: 1rem;
+    width: max-content;
+    gap: var(--review-gap);
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
-  .home-reviews__list {
-    width: max-content;
-    gap: 0;
-  }
-
   .home-reviews__list[data-loop="true"] {
-    animation: home-reviews-marquee 34s linear infinite;
+    animation: home-reviews-marquee 36s linear infinite;
     will-change: transform;
   }
 
@@ -126,20 +151,8 @@ const carouselGroups = reviews.length > 1 ? [0, 1] : [0];
     animation-play-state: paused;
   }
 
-  .home-reviews__group ul {
-    padding-right: 1rem;
-  }
-
-  .home-reviews__group {
-    flex: 0 0 auto;
-  }
-
-  .home-reviews__group ul {
-    flex: 0 0 auto;
-  }
-
-  .home-reviews__group > ul > li {
-    flex: 0 0 min(76vw, 18.5rem);
+  .home-reviews__list > li {
+    flex: 0 0 var(--review-card-width);
   }
 
   @keyframes home-reviews-marquee {
@@ -148,7 +161,7 @@ const carouselGroups = reviews.length > 1 ? [0, 1] : [0];
     }
 
     to {
-      transform: translate3d(-50%, 0, 0);
+      transform: translate3d(calc(-1 * var(--marquee-distance, 0px)), 0, 0);
     }
   }
 
@@ -209,8 +222,8 @@ const carouselGroups = reviews.length > 1 ? [0, 1] : [0];
       align-items: end;
     }
 
-    .home-reviews__group > ul > li {
-      flex-basis: calc((min(100vw - 2rem, 76rem) - 2rem) / 3);
+    .home-reviews__viewport {
+      --review-card-width: calc((min(100vw - 2rem, 76rem) - 2rem) / 3);
     }
 
     :global(.home-reviews .review-card) {
