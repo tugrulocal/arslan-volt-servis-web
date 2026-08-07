@@ -58,9 +58,9 @@ const idempotencyKey = createIdempotencyValue();
       <legend>Puanınız</legend>
       <div class="review-rating__options" role="radiogroup">
         {[1, 2, 3, 4, 5].map((rating) => (
-          <label>
-            <input type="radio" name="rating" value={rating} required />
-            <span>{rating}</span>
+          <label class="review-rating__option">
+            <input type="radio" name="rating" value={rating} required aria-label={`${rating} yıldız`} />
+            <span class="review-rating__stars" aria-hidden="true">{"★".repeat(rating)}</span>
           </label>
         ))}
       </div>
@@ -240,31 +240,59 @@ const idempotencyKey = createIdempotencyValue();
     gap: 0.45rem;
   }
 
-  .review-rating label {
+  .review-rating__option {
+    position: relative;
     cursor: pointer;
   }
 
   .review-rating input {
     position: absolute;
+    inset: 0;
+    margin: 0;
     opacity: 0;
+    cursor: pointer;
   }
 
-  .review-rating span {
+  .review-rating__stars {
     display: grid;
     min-height: 3rem;
     place-items: center;
     border: 1px solid var(--border);
     border-radius: 0.5rem;
     background: var(--bg-warm);
-    color: var(--brand-navy);
+    color: var(--brand-gold);
+    font-size: 1.18rem;
     font-weight: 900;
+    letter-spacing: 0.12em;
+    text-shadow: 0 0.1rem 0.35rem rgb(212 175 55 / 22%);
+    transition:
+      transform 180ms ease,
+      box-shadow 180ms ease,
+      border-color 180ms ease,
+      background-color 180ms ease;
   }
 
-  .review-rating input:checked + span,
-  .review-rating input:focus-visible + span {
+  .review-rating__option:hover .review-rating__stars,
+  .review-rating__option:active .review-rating__stars,
+  .review-rating input:checked + .review-rating__stars,
+  .review-rating input:focus-visible + .review-rating__stars {
     border-color: var(--brand-gold);
     background: rgb(226 198 106 / 20%);
-    box-shadow: 0 0 0 3px rgb(212 175 55 / 18%);
+    box-shadow:
+      0 0 0 3px rgb(212 175 55 / 16%),
+      0 0.7rem 1.6rem rgb(212 175 55 / 16%);
+    transform: translateY(-1px) scale(1.03);
+  }
+
+  .review-rating input:checked + .review-rating__stars {
+    background:
+      linear-gradient(180deg, rgb(255 244 205 / 96%), rgb(226 198 106 / 20%)),
+      var(--bg-warm);
+  }
+
+  .review-rating input:focus-visible + .review-rating__stars {
+    outline: 2px solid rgb(212 175 55 / 42%);
+    outline-offset: 2px;
   }
 
   .review-form__checks {

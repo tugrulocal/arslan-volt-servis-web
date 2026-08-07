@@ -52,6 +52,33 @@ const isVerified = review.verificationStatus === "verified";
       var(--white);
     padding: clamp(1.1rem, 2.4vw, 1.45rem);
     box-shadow: 0 1rem 2.5rem rgb(11 29 58 / 8%);
+    transform: translateY(0) scale(1);
+    transition:
+      transform 200ms ease,
+      box-shadow 200ms ease,
+      border-color 200ms ease,
+      filter 200ms ease;
+    will-change: transform, box-shadow;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .review-card:hover,
+  .review-card:focus-within,
+  .review-card:active {
+    border-color: rgb(212 175 55 / 28%);
+    box-shadow:
+      0 1.15rem 2.8rem rgb(11 29 58 / 10%),
+      0 0 0 1px rgb(212 175 55 / 10%),
+      0 0.9rem 1.8rem rgb(212 175 55 / 10%);
+    transform: translateY(-4px) scale(1.012);
+    filter: saturate(1.02);
+  }
+
+  @media (hover: none) {
+    .review-card:active {
+      transform: translateY(-2px) scale(1.01);
+    }
   }
 
   .review-card__topline {
@@ -78,6 +105,20 @@ const isVerified = review.verificationStatus === "verified";
     border-color: rgb(212 175 55 / 44%);
     background: rgb(226 198 106 / 14%);
     color: var(--brand-navy);
+  }
+
+  .review-card__badge {
+    transition:
+      transform 180ms ease,
+      box-shadow 180ms ease,
+      background-color 180ms ease,
+      border-color 180ms ease;
+  }
+
+  .review-card:hover .review-card__badge,
+  .review-card:focus-within .review-card__badge,
+  .review-card:active .review-card__badge {
+    transform: translateY(-1px);
   }
 
   blockquote,
@@ -124,4 +165,3 @@ const isVerified = review.verificationStatus === "verified";
     font-size: 1rem;
   }
 </style>
-
