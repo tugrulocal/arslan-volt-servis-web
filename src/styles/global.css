@@ -2,6 +2,12 @@
 @import "tailwindcss";
 @import "./tokens.css";
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 html {
   min-width: 320px;
   background: var(--bg-warm);

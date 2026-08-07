@@ -131,6 +131,7 @@ const { reviews, summary, nextCursor, unavailable } = await getPublicReviews({
       linear-gradient(135deg, rgb(11 29 58 / 96%), rgb(19 42 74 / 96%)),
       var(--brand-navy);
     color: var(--white);
+    overflow-x: clip;
     padding-block: clamp(4rem, 8vw, 7rem);
   }
 
@@ -185,6 +186,7 @@ const { reviews, summary, nextCursor, unavailable } = await getPublicReviews({
 
   .reviews-list,
   .reviews-form-section {
+    overflow-x: clip;
     padding-block: clamp(4.5rem, 8vw, 7rem);
   }
 

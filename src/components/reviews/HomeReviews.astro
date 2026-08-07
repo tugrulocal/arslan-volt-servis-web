@@ -8,6 +8,7 @@ const { reviews, unavailable } = await getPublicReviews({
   verifiedOnly: true,
   limit: 3,
 });
+const carouselGroups = reviews.length > 1 ? Array.from({ length: 5 }) : [0];
 ---
 
 <section class="home-reviews" aria-labelledby="home-reviews-title">
@@ -24,31 +25,15 @@ const { reviews, unavailable } = await getPublicReviews({
         <div class="home-reviews__carousel" data-home-reviews-carousel>
           <div class="home-reviews__viewport" data-carousel-viewport tabindex="0" aria-label="Son müşteri yorumları">
             <ul class="home-reviews__list" data-carousel-track data-loop={reviews.length > 1 ? "true" : "false"}>
-              <li class="home-reviews__group">
-                <ul>
-                  {reviews.map((review) => (
-                    <li><ReviewCard review={review} /></li>
-                  ))}
-                </ul>
-              </li>
-              {reviews.length > 1 && (
-                <li class="home-reviews__group" aria-hidden="true">
+              {carouselGroups.map((_, groupIndex) => (
+                <li class="home-reviews__group" aria-hidden={groupIndex > 0 ? "true" : undefined}>
                   <ul>
                     {reviews.map((review) => (
                       <li><ReviewCard review={review} /></li>
                     ))}
                   </ul>
                 </li>
-              )}
-              {reviews.length > 1 && (
-                <li class="home-reviews__group" aria-hidden="true">
-                  <ul>
-                    {reviews.map((review) => (
-                      <li><ReviewCard review={review} /></li>
-                    ))}
-                  </ul>
-                </li>
-              )}
+              ))}
             </ul>
           </div>
         </div>
@@ -77,8 +62,11 @@ const { reviews, unavailable } = await getPublicReviews({
 
   if (carousel && viewport && track) {
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const groups = Array.from(track.querySelectorAll<HTMLElement>(":scope > .home-reviews__group"));
-    const canLoop = track.dataset.loop === "true" && groups.length >= 3 && !prefersReducedMotion;
+    const groups = Array.from(track.children).filter((child) =>
+      child.classList.contains("home-reviews__group"),
+    ) as HTMLElement[];
+    const middleGroupIndex = Math.max(1, Math.floor(groups.length / 2));
+    const canLoop = track.dataset.loop === "true" && groups.length >= 5 && !prefersReducedMotion;
     let groupWidth = 0;
     let isPaused = false;
     let interactionTimer: number | undefined;
@@ -86,15 +74,15 @@ const { reviews, unavailable } = await getPublicReviews({
 
     const measure = () => {
       groupWidth = groups[0]?.getBoundingClientRect().width || 0;
-      if (canLoop && groupWidth > 0) viewport.scrollLeft = groupWidth;
+      if (canLoop && groupWidth > 0) viewport.scrollLeft = groupWidth * middleGroupIndex;
     };
 
     const normalizeScrollPosition = () => {
       if (!canLoop || groupWidth <= 0) return;
 
-      if (viewport.scrollLeft <= 1) {
+      if (viewport.scrollLeft < groupWidth) {
         viewport.scrollLeft += groupWidth;
-      } else if (viewport.scrollLeft >= groupWidth * 2) {
+      } else if (viewport.scrollLeft >= groupWidth * (groups.length - 2)) {
         viewport.scrollLeft -= groupWidth;
       }
     };
@@ -109,7 +97,7 @@ const { reviews, unavailable } = await getPublicReviews({
 
     const animate = () => {
       if (!isPaused && canLoop && groupWidth > 0) {
-        viewport.scrollLeft -= 0.28;
+        viewport.scrollLeft += 0.28;
         normalizeScrollPosition();
       }
 
@@ -141,10 +129,13 @@ const { reviews, unavailable } = await getPublicReviews({
     window.addEventListener("resize", measure);
     frameId = window.requestAnimationFrame(animate);
 
-    document.addEventListener("astro:before-swap", () => {
+    const cleanup = () => {
       if (frameId) window.cancelAnimationFrame(frameId);
       if (interactionTimer) window.clearTimeout(interactionTimer);
-    }, { once: true });
+    };
+
+    document.addEventListener("astro:before-swap", cleanup, { once: true });
+    window.addEventListener("pagehide", cleanup, { once: true });
   }
 </script>
 
