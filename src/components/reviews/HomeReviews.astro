@@ -71,10 +71,18 @@ const carouselGroups = reviews.length > 1 ? Array.from({ length: 5 }) : [0];
     let isPaused = false;
     let interactionTimer: number | undefined;
     let frameId: number | undefined;
+    let lastFrameTime = 0;
 
     const measure = () => {
-      groupWidth = groups[0]?.getBoundingClientRect().width || 0;
-      if (canLoop && groupWidth > 0) viewport.scrollLeft = groupWidth * middleGroupIndex;
+      const firstGroup = groups[0];
+      const secondGroup = groups[1];
+      groupWidth = firstGroup && secondGroup
+        ? secondGroup.offsetLeft - firstGroup.offsetLeft
+        : firstGroup?.scrollWidth || 0;
+
+      if (canLoop && groupWidth > 0) {
+        viewport.scrollLeft = groupWidth * middleGroupIndex;
+      }
     };
 
     const normalizeScrollPosition = () => {
@@ -95,9 +103,12 @@ const carouselGroups = reviews.length > 1 ? Array.from({ length: 5 }) : [0];
       }, 1400);
     };
 
-    const animate = () => {
+    const animate = (time: number) => {
+      const elapsed = lastFrameTime ? time - lastFrameTime : 16;
+      lastFrameTime = time;
+
       if (!isPaused && canLoop && groupWidth > 0) {
-        viewport.scrollLeft += 0.28;
+        viewport.scrollLeft += (elapsed / 1000) * 18;
         normalizeScrollPosition();
       }
 
@@ -125,7 +136,8 @@ const carouselGroups = reviews.length > 1 ? Array.from({ length: 5 }) : [0];
       viewport.addEventListener(eventName, pauseTemporarily, { passive: true });
     });
 
-    measure();
+    window.requestAnimationFrame(measure);
+    window.setTimeout(measure, 350);
     window.addEventListener("resize", measure);
     frameId = window.requestAnimationFrame(animate);
 
@@ -176,6 +188,8 @@ const carouselGroups = reviews.length > 1 ? Array.from({ length: 5 }) : [0];
   .home-reviews__viewport {
     overflow-x: auto;
     overscroll-behavior-x: contain;
+    margin-block: -1rem;
+    padding-block: 1rem;
     scrollbar-width: thin;
     scrollbar-color: rgb(11 29 58 / 26%) transparent;
   }
@@ -201,6 +215,14 @@ const carouselGroups = reviews.length > 1 ? Array.from({ length: 5 }) : [0];
 
   .home-reviews__group ul {
     padding-right: 1rem;
+  }
+
+  .home-reviews__group {
+    flex: 0 0 auto;
+  }
+
+  .home-reviews__group ul {
+    flex: 0 0 auto;
   }
 
   .home-reviews__group > ul > li {
