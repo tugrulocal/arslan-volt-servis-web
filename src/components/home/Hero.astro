@@ -81,13 +81,11 @@ const whatsappHref = getWhatsAppHref();
           </Button>
         </span>
 
-        <span class="hero__action hero__action--services" data-hero-action>
+        <span class="hero__secondary-actions" data-hero-action>
           <Button href="/hizmetler" variant="text" tone="on-dark">
             Hizmetleri İncele
           </Button>
-        </span>
 
-        <span class="hero__action hero__action--location" data-hero-action>
           <Button href="/iletisim" variant="text" tone="on-dark">
             Neredeyiz?
           </Button>
@@ -306,8 +304,13 @@ const whatsappHref = getWhatsAppHref();
     display: none;
   }
 
-  .hero__action--location {
-    justify-content: flex-end;
+  .hero__secondary-actions {
+    display: flex;
+    grid-column: 1 / -1;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+    min-width: 0;
   }
 
   @media (min-width: 48rem) {
@@ -362,6 +365,13 @@ const whatsappHref = getWhatsAppHref();
       flex-wrap: wrap;
       align-items: center;
       margin-top: 1.35rem;
+    }
+
+    .hero__secondary-actions {
+      flex: 0 0 100%;
+      justify-content: flex-start;
+      gap: 1.5rem;
+      margin-top: -0.2rem;
     }
 
     .hero__action :global(.button[data-size="large"]) {

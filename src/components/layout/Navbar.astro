@@ -1,14 +1,20 @@
 ---
 import { Image } from "astro:assets";
 import Button from "../common/Button.astro";
+import ContactIcon from "../common/ContactIcon.astro";
 import Container from "../common/Container.astro";
 import horizontalLogo from "../../assets/brand/arslanvolt_navibarlogo.png";
-import { getPhoneHref, siteConfig } from "../../config/site";
+import {
+  getPhoneHref,
+  getWhatsAppHref,
+  siteConfig,
+} from "../../config/site";
 import { navigationItems } from "../../data/navigation";
 import MobileMenu from "./MobileMenu.astro";
 
 const currentPath = Astro.url.pathname.replace(/\/+$/, "") || "/";
 const phoneHref = getPhoneHref();
+const whatsappHref = getWhatsAppHref();
 
 const isCurrentPage = (href: string) =>
   href === "/" ? currentPath === "/" : currentPath.startsWith(href);
@@ -51,12 +57,39 @@ const isCurrentPage = (href: string) =>
           disabled={!phoneHref}
           title={!phoneHref ? "Telefon bilgisi eklenecek" : undefined}
         >
+          <ContactIcon kind="phone" />
           Hemen Ara
         </Button>
       </div>
 
+      <div class="mobile-quick-contact" role="group" aria-label="Hızlı iletişim">
+        {
+          phoneHref && (
+            <a
+              class="mobile-quick-contact__link"
+              href={phoneHref}
+              aria-label="Telefonla ara"
+            >
+              <ContactIcon kind="phone" />
+            </a>
+          )
+        }
+        {
+          whatsappHref && (
+            <a
+              class="mobile-quick-contact__link"
+              href={whatsappHref}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="WhatsApp ile iletişime geç"
+            >
+              <ContactIcon kind="whatsapp" />
+            </a>
+          )
+        }
+      </div>
+
       <MobileMenu />
-      <MobileMenu navigationItems={navigationItems} phoneHref={phoneHref} />
     </nav>
   </Container>
 </header>
@@ -134,6 +167,41 @@ const isCurrentPage = (href: string) =>
     display: none;
   }
 
+  .mobile-quick-contact {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-left: auto;
+  }
+
+  .mobile-quick-contact__link {
+    display: grid;
+    width: 2.75rem;
+    height: 2.75rem;
+    place-items: center;
+    border-radius: 50%;
+    color: var(--white);
+    text-decoration: none;
+    transition:
+      background-color 160ms ease,
+      color 160ms ease,
+      scale 160ms ease;
+  }
+
+  .mobile-quick-contact__link :global(svg) {
+    width: 1.45rem;
+    height: 1.45rem;
+  }
+
+  .mobile-quick-contact__link:hover {
+    background: rgb(255 255 255 / 9%);
+    color: var(--brand-gold-soft);
+  }
+
+  .mobile-quick-contact__link:active {
+    scale: 0.94;
+  }
+
   @media (min-width: 68rem) {
     .navbar {
       gap: clamp(1rem, 1.4vw, 1.75rem);
@@ -187,6 +255,10 @@ const isCurrentPage = (href: string) =>
     .desktop-contact {
       display: block;
       flex: none;
+    }
+
+    .mobile-quick-contact {
+      display: none;
     }
   }
 </style>
