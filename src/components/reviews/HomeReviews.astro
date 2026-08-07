@@ -2,10 +2,9 @@
 import Button from "../common/Button.astro";
 import Container from "../common/Container.astro";
 import ReviewCard from "./ReviewCard.astro";
-import ReviewStars from "./ReviewStars.astro";
 import { getPublicReviews } from "../../lib/reviews/public";
 
-const { reviews, summary, unavailable } = await getPublicReviews({
+const { reviews, unavailable } = await getPublicReviews({
   verifiedOnly: true,
   limit: 3,
 });
@@ -18,16 +17,6 @@ const { reviews, summary, unavailable } = await getPublicReviews({
         <p class="home-reviews__eyebrow">Müşteri yorumları</p>
         <h2 id="home-reviews-title">Hizmeti alanların deneyimi</h2>
       </div>
-
-      {
-        summary.verifiedAverage && (
-          <div class="home-reviews__summary" aria-label={`Doğrulanmış ortalama puan ${summary.verifiedAverage}`}>
-            <strong>{summary.verifiedAverage.toLocaleString("tr-TR")}</strong>
-            <ReviewStars rating={Math.round(summary.verifiedAverage)} />
-            <span>{summary.verifiedCount} doğrulanmış yorum</span>
-          </div>
-        )
-      }
     </div>
 
     {
@@ -189,26 +178,6 @@ const { reviews, summary, unavailable } = await getPublicReviews({
     font-size: clamp(2rem, 4vw, 3.4rem);
   }
 
-  .home-reviews__summary {
-    display: grid;
-    width: fit-content;
-    gap: 0.25rem;
-    border-left: 4px solid var(--brand-gold);
-    padding-left: 1rem;
-    color: var(--brand-navy);
-  }
-
-  .home-reviews__summary strong {
-    font-size: 2rem;
-    line-height: 1;
-  }
-
-  .home-reviews__summary span {
-    color: var(--slate);
-    font-size: 0.9rem;
-    font-weight: 700;
-  }
-
   .home-reviews__carousel {
     margin: clamp(2rem, 5vw, 3.25rem) 0 0;
   }
@@ -244,7 +213,38 @@ const { reviews, summary, unavailable } = await getPublicReviews({
   }
 
   .home-reviews__group > ul > li {
-    flex: 0 0 min(82vw, 22rem);
+    flex: 0 0 min(76vw, 18.5rem);
+  }
+
+  :global(.home-reviews .review-card) {
+    gap: 0.8rem;
+    padding: 1rem;
+  }
+
+  :global(.home-reviews .review-card__topline) {
+    gap: 0.55rem;
+  }
+
+  :global(.home-reviews .review-card__badge) {
+    min-height: 1.75rem;
+    padding-inline: 0.6rem;
+    font-size: 0.72rem;
+  }
+
+  :global(.home-reviews .review-card blockquote) {
+    font-size: 0.98rem;
+    line-height: 1.55;
+  }
+
+  :global(.home-reviews .review-card blockquote p) {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 5;
+  }
+
+  :global(.home-reviews .review-card footer) {
+    font-size: 0.84rem;
   }
 
   .home-reviews__empty {
@@ -275,6 +275,26 @@ const { reviews, summary, unavailable } = await getPublicReviews({
 
     .home-reviews__group > ul > li {
       flex-basis: calc((min(100vw - 2rem, 76rem) - 2rem) / 3);
+    }
+
+    :global(.home-reviews .review-card) {
+      gap: 1.1rem;
+      padding: clamp(1.1rem, 2.4vw, 1.45rem);
+    }
+
+    :global(.home-reviews .review-card blockquote) {
+      font-size: clamp(1rem, 0.96rem + 0.18vw, 1.08rem);
+      line-height: 1.65;
+    }
+
+    :global(.home-reviews .review-card blockquote p) {
+      display: block;
+      overflow: visible;
+      -webkit-line-clamp: unset;
+    }
+
+    :global(.home-reviews .review-card footer) {
+      font-size: 0.9rem;
     }
   }
 
