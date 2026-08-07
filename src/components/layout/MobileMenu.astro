@@ -1,0 +1,395 @@
+---
+import Button from "../common/Button.astro";
+import ContactIcon from "../common/ContactIcon.astro";
+import { getPhoneHref, getWhatsAppHref } from "../../config/site";
+import { navigationItems } from "../../data/navigation";
+
+const currentPath = Astro.url.pathname.replace(/\/+$/, "") || "/";
+const phoneHref = getPhoneHref();
+const whatsappHref = getWhatsAppHref();
+
+const isCurrentPage = (href: string) =>
+  href === "/" ? currentPath === "/" : currentPath.startsWith(href);
+---
+
+<details class="mobile-menu" data-mobile-menu>
+  <summary class="mobile-menu__trigger">
+    <span class="sr-only">Ana menüyü aç veya kapat</span>
+    <span class="mobile-menu__icon" aria-hidden="true">
+      <span></span>
+      <span></span>
+      <span></span>
+    </span>
+  </summary>
+
+  <div class="mobile-menu__overlay">
+    <button
+      class="mobile-menu__backdrop"
+      type="button"
+      tabindex="-1"
+      aria-label="Menüyü kapat"
+      data-menu-backdrop
+    ></button>
+
+    <nav class="mobile-menu__panel" aria-label="Mobil ana navigasyon">
+      <div>
+        <p class="mobile-menu__label">Menü</p>
+        <ul class="mobile-menu__links">
+          {
+            navigationItems.map((item) => (
+              <li>
+                <a
+                  class="mobile-menu__link"
+                  href={item.href}
+                  aria-current={isCurrentPage(item.href) ? "page" : undefined}
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div class="mobile-menu__contact">
+        <Button
+          href={phoneHref}
+          disabled={!phoneHref}
+          fullWidth
+          size="large"
+          title={!phoneHref ? "Telefon bilgisi eklenecek" : undefined}
+        >
+          <ContactIcon kind="phone" />
+          Hemen Ara
+        </Button>
+        {
+          whatsappHref && (
+            <Button
+              href={whatsappHref}
+              variant="outline"
+              tone="on-dark"
+              fullWidth
+              size="large"
+              external
+            >
+              <ContactIcon kind="whatsapp" />
+              WhatsApp
+            </Button>
+          )
+        }
+        {!phoneHref && <small>Telefon bilgisi eklenecek</small>}
+      </div>
+    </nav>
+  </div>
+</details>
+
+<script>
+  const menus = Array.from(
+    document.querySelectorAll<HTMLDetailsElement>("[data-mobile-menu]"),
+  );
+
+  const syncBodyState = () => {
+    document.body.classList.toggle(
+      "mobile-menu-open",
+      menus.some((menu) => menu.open),
+    );
+  };
+
+  const closeMenu = (menu: HTMLDetailsElement, restoreFocus = true) => {
+    if (!menu.open) return;
+
+    menu.open = false;
+    syncBodyState();
+    if (restoreFocus) {
+      menu.querySelector<HTMLElement>("summary")?.focus();
+    }
+  };
+
+  menus.forEach((menu) => {
+    menu.addEventListener("toggle", syncBodyState);
+
+    menu
+      .querySelector<HTMLElement>("[data-menu-backdrop]")
+      ?.addEventListener("click", () => closeMenu(menu));
+
+    menu.querySelectorAll<HTMLAnchorElement>("nav a").forEach((link) => {
+      link.addEventListener("click", () => closeMenu(menu, false));
+    });
+  });
+
+  document.addEventListener("keydown", (event) => {
+    const openMenu = menus.find((menu) => menu.open);
+    if (!openMenu) return;
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeMenu(openMenu);
+      return;
+    }
+
+    if (event.key !== "Tab") return;
+
+    const summary = openMenu.querySelector<HTMLElement>("summary");
+    const panelItems = Array.from(
+      openMenu.querySelectorAll<HTMLElement>(
+        'nav a[href], nav button:not([disabled]):not([tabindex="-1"])',
+      ),
+    );
+    const focusableItems = summary ? [summary, ...panelItems] : panelItems;
+    if (focusableItems.length === 0) return;
+
+    const firstItem = focusableItems[0];
+    const lastItem = focusableItems.at(-1);
+
+    if (event.shiftKey && document.activeElement === firstItem) {
+      event.preventDefault();
+      lastItem?.focus();
+    } else if (!event.shiftKey && document.activeElement === lastItem) {
+      event.preventDefault();
+      firstItem?.focus();
+    }
+  });
+
+  window.addEventListener("resize", () => {
+    if (!window.matchMedia("(min-width: 68rem)").matches) return;
+
+    menus.forEach((menu) => closeMenu(menu, false));
+    syncBodyState();
+  });
+</script>
+
+<style>
+  .mobile-menu {
+    margin-left: 0;
+    overflow: visible;
+  }
+
+  .mobile-menu__trigger {
+    position: relative;
+    z-index: 72;
+    display: grid;
+    width: 2.75rem;
+    height: 2.75rem;
+    overflow: visible;
+    list-style: none;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--white);
+    cursor: pointer;
+    transition:
+      background-color 160ms ease,
+      color 160ms ease;
+  }
+
+  .mobile-menu__trigger::-webkit-details-marker {
+    display: none;
+  }
+
+  .mobile-menu__icon {
+    position: relative;
+    display: block;
+    width: 1.45rem;
+    height: 1.1rem;
+    overflow: visible;
+  }
+
+  .mobile-menu__icon span {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    border-radius: 999px;
+    background: currentColor;
+    transition:
+      top 200ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 140ms ease;
+    transform-origin: center;
+  }
+
+  .mobile-menu__icon span:first-child {
+    top: 0;
+  }
+
+  .mobile-menu__icon span:nth-child(2) {
+    top: calc(50% - 1px);
+  }
+
+  .mobile-menu__icon span:last-child {
+    top: calc(100% - 2px);
+  }
+
+  .mobile-menu[open] .mobile-menu__icon span:first-child {
+    top: calc(50% - 1px);
+    transform: rotate(45deg);
+  }
+
+  .mobile-menu[open] .mobile-menu__icon span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .mobile-menu[open] .mobile-menu__icon span:last-child {
+    top: calc(50% - 1px);
+    transform: rotate(-45deg);
+  }
+
+  .mobile-menu__trigger:hover,
+  .mobile-menu[open] .mobile-menu__trigger {
+    background: transparent;
+    color: var(--white);
+  }
+
+  .mobile-menu__overlay {
+    position: fixed;
+    z-index: 68;
+    inset: var(--header-height) 0 0;
+    display: grid;
+    grid-template-columns: 1fr min(17rem, 56vw);
+    grid-template-rows: minmax(0, 1fr);
+    overflow: hidden;
+  }
+
+  .mobile-menu__backdrop {
+    grid-column: 1;
+    grid-row: 1;
+    border: 0;
+    background: rgb(5 18 38 / 52%);
+    backdrop-filter: blur(2px);
+    cursor: pointer;
+    animation: backdrop-in 260ms ease both;
+  }
+
+  .mobile-menu__panel {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    justify-content: space-between;
+    grid-column: 2;
+    grid-row: 1;
+    overflow-y: auto;
+    border-top: 1px solid rgb(226 198 106 / 24%);
+    border-left: 1px solid rgb(226 198 106 / 18%);
+    background:
+      linear-gradient(180deg, rgb(19 42 74 / 98%), rgb(11 29 58 / 99%)),
+      var(--brand-navy);
+    padding: 1.25rem 0.75rem max(1.25rem, env(safe-area-inset-bottom, 0px));
+    box-shadow: -1rem 0 3rem rgb(5 18 38 / 22%);
+    animation: panel-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .mobile-menu__label {
+    margin: 0 0 0.75rem;
+    color: var(--brand-gold-soft);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .mobile-menu__links {
+    display: grid;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mobile-menu[open] .mobile-menu__links li {
+    animation: menu-item-in 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .mobile-menu[open] .mobile-menu__links li:nth-child(1) {
+    animation-delay: 55ms;
+  }
+
+  .mobile-menu[open] .mobile-menu__links li:nth-child(2) {
+    animation-delay: 85ms;
+  }
+
+  .mobile-menu[open] .mobile-menu__links li:nth-child(3) {
+    animation-delay: 115ms;
+  }
+
+  .mobile-menu[open] .mobile-menu__links li:nth-child(4) {
+    animation-delay: 145ms;
+  }
+
+  .mobile-menu__link {
+    display: flex;
+    min-height: 3rem;
+    align-items: center;
+    border-radius: 0.65rem;
+    padding: 0.6rem 0.7rem;
+    color: var(--white);
+    font-size: clamp(0.9rem, 3.8vw, 1rem);
+    font-weight: 750;
+    text-decoration: none;
+  }
+
+  .mobile-menu__link:hover,
+  .mobile-menu__link[aria-current="page"] {
+    background: var(--white);
+    color: var(--brand-navy);
+    box-shadow: inset 3px 0 0 var(--brand-gold);
+  }
+
+  .mobile-menu__contact {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: 2rem;
+    animation: menu-item-in 280ms 170ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .mobile-menu__contact :global(.button) {
+    padding-inline: 0.65rem;
+    font-size: 0.92rem;
+    white-space: nowrap;
+  }
+
+  .mobile-menu__contact :global(.button[data-variant="primary"]) {
+    background: var(--brand-gold);
+    color: var(--brand-navy);
+  }
+
+  .mobile-menu__contact small {
+    color: rgb(255 255 255 / 72%);
+    text-align: center;
+  }
+
+  @keyframes backdrop-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes panel-in {
+    from {
+      transform: translateX(2rem) scale(0.985);
+      opacity: 0;
+    }
+  }
+
+  @keyframes menu-item-in {
+    from {
+      transform: translateX(0.8rem);
+      opacity: 0;
+    }
+  }
+
+  @media (min-width: 68rem) {
+    .mobile-menu {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-menu__backdrop,
+    .mobile-menu__panel,
+    .mobile-menu__links li,
+    .mobile-menu__contact {
+      animation: none !important;
+    }
+  }
+</style>

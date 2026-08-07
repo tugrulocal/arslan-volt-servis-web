@@ -1,0 +1,143 @@
+---
+import {
+  getPhoneHref,
+  getWhatsAppHref,
+} from "../../config/site";
+import Button from "../common/Button.astro";
+import ContactIcon from "../common/ContactIcon.astro";
+import Container from "../common/Container.astro";
+
+type Props = {
+  serviceTitle?: string;
+};
+
+const { serviceTitle } = Astro.props;
+const phoneHref = getPhoneHref();
+const whatsappHref = getWhatsAppHref();
+const contextText = serviceTitle
+  ? `${serviceTitle} ihtiyacınızın ayrıntılarını bizimle paylaşabilirsiniz.`
+  : "Teknik hizmet ihtiyacınızın ayrıntılarını bizimle paylaşabilirsiniz.";
+---
+
+<section class="contact-cta" aria-labelledby="contact-cta-title">
+  <Container>
+    <div class="contact-cta__inner">
+      <div class="contact-cta__copy">
+        <p>İletişim</p>
+        <h2 id="contact-cta-title">İhtiyacınızı birlikte netleştirelim.</h2>
+        <span>{contextText}</span>
+      </div>
+
+      <div class="contact-cta__actions">
+        {
+          phoneHref ? (
+            <Button href={phoneHref} size="large" fullWidth>
+              <ContactIcon kind="phone" />
+              Telefonla Ara
+            </Button>
+          ) : (
+            <Button size="large" fullWidth disabled>
+              Telefon bilgisi bekleniyor
+            </Button>
+          )
+        }
+
+        {
+          whatsappHref ? (
+            <Button
+              href={whatsappHref}
+              variant="outline"
+              tone="on-dark"
+              size="large"
+              fullWidth
+              external
+            >
+              <ContactIcon kind="whatsapp" />
+              WhatsApp'tan Yaz
+            </Button>
+          ) : (
+            <Button size="large" fullWidth disabled>
+              WhatsApp bilgisi bekleniyor
+            </Button>
+          )
+        }
+
+        <Button
+          href="/iletisim"
+          variant="text"
+          tone="on-dark"
+          size="large"
+          fullWidth
+        >
+          İletişim sayfası
+        </Button>
+      </div>
+    </div>
+  </Container>
+</section>
+
+<style>
+  .contact-cta {
+    background: var(--brand-navy);
+    color: var(--white);
+    padding-block: clamp(3.5rem, 7vw, 6rem);
+  }
+
+  .contact-cta__inner {
+    display: grid;
+    gap: 2rem;
+    align-items: end;
+  }
+
+  .contact-cta__copy {
+    max-width: 48rem;
+  }
+
+  .contact-cta__copy > p {
+    margin: 0 0 0.75rem;
+    color: var(--brand-gold-soft);
+    font-size: 0.8rem;
+    font-weight: 850;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .contact-cta h2 {
+    max-width: 18ch;
+    margin: 0;
+    font-size: clamp(2rem, 1.5rem + 2.2vw, 3.75rem);
+  }
+
+  .contact-cta__copy > span {
+    display: block;
+    max-width: 55ch;
+    margin-top: 1rem;
+    color: #c6ced9;
+  }
+
+  .contact-cta__actions {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  @media (min-width: 48rem) {
+    .contact-cta__actions {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .contact-cta__inner {
+      grid-template-columns: minmax(0, 1fr) minmax(34rem, 0.9fr);
+      gap: 4rem;
+    }
+
+    .contact-cta__actions {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .contact-cta__actions :global(.button:last-child) {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

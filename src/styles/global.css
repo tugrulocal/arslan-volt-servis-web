@@ -1,0 +1,80 @@
+@import "@fontsource-variable/montserrat/wght.css";
+@import "tailwindcss";
+@import "./tokens.css";
+
+html {
+  min-width: 320px;
+  background: var(--bg-warm);
+  color: var(--charcoal);
+  color-scheme: light;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  font-family: var(--font-body-family);
+  font-size: clamp(1rem, 0.97rem + 0.12vw, 1.0625rem);
+  line-height: 1.65;
+  text-rendering: optimizeLegibility;
+}
+
+body.mobile-menu-open {
+  overflow: hidden;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-heading-family);
+  line-height: 1.12;
+  text-wrap: balance;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--brand-gold);
+  outline-offset: 3px;
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 100;
+  top: 0.75rem;
+  left: 0.75rem;
+  translate: 0 -200%;
+  border-radius: 0.5rem;
+  background: var(--white);
+  padding: 0.75rem 1rem;
+  color: var(--brand-navy);
+  font-weight: 700;
+}
+
+.skip-link:focus {
+  translate: 0;
+}
+
+.page-shell {
+  min-height: 70vh;
+  padding-block: clamp(4rem, 9vw, 8rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,231 @@
+---
+import Container from "../components/common/Container.astro";
+import { getPhoneHref, siteConfig } from "../config/site";
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const phoneHref = getPhoneHref();
+const pageDescription =
+  "ARSLAN VOLT SERVİS'in Iğdır genelindeki hizmet anlayışı, çalışma saatleri ve iletişim bilgileri.";
+---
+
+<BaseLayout
+  title={`Hakkımızda | ${siteConfig.name}`}
+  description={pageDescription}
+  canonicalPath="/hakkimizda"
+>
+  <main id="main-content" class="about-page">
+    <section class="about-hero" aria-labelledby="about-title">
+      <Container>
+        <div class="about-hero__content">
+          <p class="about-hero__eyebrow">{siteConfig.slogan}</p>
+          <h1 id="about-title">Hakkımızda</h1>
+          <p class="about-hero__lead">
+            Iğdır genelinde ev ve iş yerlerinin teknik servis ihtiyaçlarına
+            açık iletişimle, düzenli ve özenli bir hizmet anlayışıyla yaklaşıyoruz.
+          </p>
+        </div>
+      </Container>
+    </section>
+
+    <section class="about-content" aria-labelledby="service-approach-title">
+      <Container>
+        <div class="about-content__grid">
+          <article class="about-story">
+            <p class="about-story__eyebrow">Hizmet anlayışımız</p>
+            <h2 id="service-approach-title">
+              Güvenilir hizmet, net iletişim ve zamanında destek.
+            </h2>
+            <p>
+              Tecrübeli teknik kadromuzla güvenilir ve verimli hizmet anlayışını
+              benimsiyor; müşteri memnuniyeti, kalite ve zamanında hizmet
+              ilkelerinden ödün vermeden çalışıyoruz.
+            </p>
+            <p>
+              Hizmet kalitesini ve müşteri memnuniyetini artırmaya yönelik
+              çalışmalarımızı sürekli geliştiriyoruz. Teknolojinin sağladığı
+              imkânlardan yararlanarak Iğdır'ın her noktasında teknik sorunları
+              gidermek ve ihtiyaç duyulan desteği sağlamak için çalışıyoruz.
+            </p>
+          </article>
+
+          <aside class="about-facts" aria-label="Hizmet bilgileri">
+            <div class="about-fact">
+              <span>Hizmet bölgesi</span>
+              <strong>{siteConfig.serviceArea}</strong>
+              <p>Iğdır merkez ve il genelindeki talepleriniz için iletişime geçebilirsiniz.</p>
+            </div>
+            <div class="about-fact">
+              <span>Çalışma saatleri</span>
+              <strong>{siteConfig.hours}</strong>
+              <p>Teknik servis ihtiyacınızı bu saatler arasında paylaşabilirsiniz.</p>
+            </div>
+            <div class="about-fact">
+              <span>Doğrudan iletişim</span>
+              {
+                phoneHref
+                  ? <a href={phoneHref}>{siteConfig.phone}</a>
+                  : <strong>{siteConfig.phone}</strong>
+              }
+              <p>İhtiyacınızı anlatın, uygun hizmet adımını birlikte belirleyelim.</p>
+            </div>
+          </aside>
+        </div>
+      </Container>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .about-page {
+    background: var(--bg-warm);
+  }
+
+  .about-hero {
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid rgb(226 198 106 / 22%);
+    background:
+      radial-gradient(circle at 82% 25%, rgb(226 198 106 / 15%), transparent 30%),
+      linear-gradient(135deg, var(--brand-navy), var(--brand-navy-2));
+    color: var(--white);
+  }
+
+  .about-hero::after {
+    position: absolute;
+    right: -6rem;
+    bottom: -11rem;
+    width: 24rem;
+    height: 24rem;
+    border: 1px solid rgb(226 198 106 / 15%);
+    border-radius: 50%;
+    content: "";
+  }
+
+  .about-hero__content {
+    position: relative;
+    z-index: 1;
+    max-width: 56rem;
+    padding-block: clamp(4rem, 9vw, 7rem);
+  }
+
+  .about-hero__eyebrow,
+  .about-story__eyebrow {
+    margin: 0 0 0.85rem;
+    color: var(--brand-gold-soft);
+    font-size: 0.78rem;
+    font-weight: 850;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .about-hero h1 {
+    margin: 0;
+    color: var(--white);
+    font-size: clamp(2.65rem, 2rem + 3vw, 5.5rem);
+    letter-spacing: -0.045em;
+  }
+
+  .about-hero__lead {
+    max-width: 57ch;
+    margin: 1.25rem 0 0;
+    color: rgb(255 255 255 / 82%);
+    font-size: clamp(1.05rem, 0.97rem + 0.38vw, 1.3rem);
+    line-height: 1.65;
+  }
+
+  .about-content {
+    padding-block: clamp(3.5rem, 8vw, 7rem);
+  }
+
+  .about-content__grid {
+    display: grid;
+    gap: clamp(2.5rem, 6vw, 5rem);
+  }
+
+  .about-story__eyebrow {
+    color: var(--brand-gold);
+  }
+
+  .about-story h2 {
+    max-width: 18ch;
+    margin: 0;
+    color: var(--brand-navy);
+    font-size: clamp(2rem, 1.55rem + 1.7vw, 3.5rem);
+    letter-spacing: -0.04em;
+    line-height: 1.08;
+  }
+
+  .about-story > p:not(.about-story__eyebrow) {
+    max-width: 66ch;
+    margin: 1.4rem 0 0;
+    color: var(--slate);
+    font-size: clamp(1rem, 0.96rem + 0.2vw, 1.12rem);
+    line-height: 1.75;
+  }
+
+  .about-facts {
+    display: grid;
+    overflow: hidden;
+    border: 1px solid rgb(226 198 106 / 32%);
+    border-radius: 1.3rem;
+    background: var(--white);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .about-fact {
+    position: relative;
+    padding: 1.5rem;
+  }
+
+  .about-fact + .about-fact {
+    border-top: 1px solid var(--border);
+  }
+
+  .about-fact::before {
+    position: absolute;
+    top: 1.65rem;
+    left: 0;
+    width: 3px;
+    height: 2.25rem;
+    border-radius: 0 999px 999px 0;
+    background: var(--brand-gold);
+    content: "";
+  }
+
+  .about-fact span {
+    display: block;
+    color: var(--slate);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  .about-fact strong,
+  .about-fact a {
+    display: inline-block;
+    margin-top: 0.35rem;
+    color: var(--brand-navy);
+    font-size: 1.22rem;
+    font-weight: 780;
+  }
+
+  .about-fact a {
+    text-decoration-color: var(--brand-gold);
+    text-underline-offset: 0.24em;
+  }
+
+  .about-fact p {
+    margin: 0.5rem 0 0;
+    color: var(--slate);
+    font-size: 0.9rem;
+    line-height: 1.55;
+  }
+
+  @media (min-width: 62rem) {
+    .about-content__grid {
+      grid-template-columns: minmax(0, 1.2fr) minmax(20rem, 0.8fr);
+      align-items: start;
+    }
+  }
+</style>

@@ -1,0 +1,289 @@
+---
+import Button from "../components/common/Button.astro";
+import ContactIcon from "../components/common/ContactIcon.astro";
+import Container from "../components/common/Container.astro";
+import {
+  getPhoneHref,
+  getWhatsAppHref,
+  siteConfig,
+} from "../config/site";
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const pageDescription =
+  "Telefon, WhatsApp ve Iğdır merkezdeki adresimiz üzerinden ARSLAN VOLT SERVİS'e ulaşın.";
+const phoneHref = getPhoneHref();
+const whatsappHref = getWhatsAppHref();
+const hoursPrefix = siteConfig.hours.startsWith("Her gün ")
+  ? "Her gün"
+  : siteConfig.hours;
+const hoursValue = siteConfig.hours.startsWith("Her gün ")
+  ? siteConfig.hours.replace("Her gün ", "")
+  : "";
+---
+
+<BaseLayout
+  title={`İletişim | ${siteConfig.name}`}
+  description={pageDescription}
+  canonicalPath="/iletisim"
+>
+  <main id="main-content" class="contact-page">
+    <section
+      class="contact-page__details"
+      aria-labelledby="contact-page-title"
+    >
+      <Container>
+        <div class="contact-page__grid">
+          <div class="contact-card">
+            <p class="contact-card__eyebrow">Adres ve iletişim</p>
+            <h1 id="contact-page-title">Bize doğrudan ulaşın.</h1>
+
+            <address class="contact-card__address">
+              <strong>{siteConfig.name}</strong>
+              <span>{siteConfig.address}</span>
+            </address>
+
+            <dl class="contact-card__list">
+              <div>
+                <dt>Telefon</dt>
+                <dd>
+                  {phoneHref
+                    ? <a href={phoneHref}>{siteConfig.phone}</a>
+                    : <span>{siteConfig.phone}</span>}
+                </dd>
+              </div>
+              <div>
+                <dt>WhatsApp</dt>
+                <dd>
+                  {whatsappHref
+                    ? <a href={whatsappHref} target="_blank" rel="noreferrer">{siteConfig.whatsapp}</a>
+                    : <span>{siteConfig.whatsapp}</span>}
+                </dd>
+              </div>
+              <div>
+                <dt>Çalışma saatleri</dt>
+                <dd class="contact-card__hours">
+                  <span>{hoursPrefix}</span>
+                  {hoursValue && <span>{hoursValue}</span>}
+                </dd>
+              </div>
+              <div>
+                <dt>Hizmet bölgesi</dt>
+                <dd>{siteConfig.serviceArea}</dd>
+              </div>
+            </dl>
+
+            <div class="contact-card__actions">
+              {
+                phoneHref && (
+                  <Button href={phoneHref} size="large" fullWidth>
+                    <ContactIcon kind="phone" />
+                    <span class="contact-card__button-label contact-card__button-label--desktop">
+                      Telefonla Ara
+                    </span>
+                    <span class="contact-card__button-label contact-card__button-label--mobile">
+                      Ara
+                    </span>
+                  </Button>
+                )
+              }
+              {
+                whatsappHref && (
+                  <Button
+                    href={whatsappHref}
+                    variant="secondary"
+                    size="large"
+                    fullWidth
+                  external
+                >
+                    <ContactIcon kind="whatsapp" />
+                    <span class="contact-card__button-label contact-card__button-label--desktop">
+                      WhatsApp'tan Yaz
+                    </span>
+                    <span class="contact-card__button-label contact-card__button-label--mobile">
+                      WhatsApp
+                    </span>
+                  </Button>
+                )
+              }
+            </div>
+          </div>
+
+          <div class="contact-map">
+            <iframe
+              src={siteConfig.mapEmbedUrl}
+              width="600"
+              height="450"
+              style="border:0;"
+              allowfullscreen
+              loading="lazy"
+              referrerpolicy="strict-origin-when-cross-origin"
+              title={`${siteConfig.name} harita konumu`}
+            ></iframe>
+          </div>
+        </div>
+      </Container>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .contact-page {
+    background: var(--bg-warm);
+  }
+
+  .contact-page__details {
+    padding-block: clamp(1rem, 3vw, 2.5rem) clamp(3rem, 7vw, 6rem);
+  }
+
+  .contact-page__grid {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .contact-card,
+  .contact-map {
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 1.25rem;
+    background: var(--white);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .contact-card {
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+  }
+
+  .contact-card__eyebrow {
+    margin: 0 0 0.75rem;
+    color: var(--brand-gold);
+    font-size: 0.78rem;
+    font-weight: 850;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .contact-card h1 {
+    margin: 0;
+    color: var(--brand-navy);
+    font-size: clamp(1.75rem, 1.4rem + 1.4vw, 2.75rem);
+  }
+
+  .contact-card__address {
+    display: grid;
+    gap: 0.4rem;
+    margin-top: 1.5rem;
+    color: var(--slate);
+    font-style: normal;
+  }
+
+  .contact-card__address strong {
+    color: var(--brand-navy);
+  }
+
+  .contact-card__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 1.75rem 0 0;
+  }
+
+  .contact-card__list div {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .contact-card__list dt {
+    color: var(--slate);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .contact-card__list dd {
+    margin: 0;
+    color: var(--brand-navy);
+    font-size: 1.05rem;
+    font-weight: 750;
+  }
+
+  .contact-card__list div:nth-child(n + 3) dd {
+    font-size: 0.98rem;
+  }
+
+  .contact-card__list a {
+    text-decoration-color: var(--brand-gold);
+    text-underline-offset: 0.24em;
+  }
+
+  .contact-card__hours {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem 0.32rem;
+  }
+
+  .contact-card__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-top: 2rem;
+  }
+
+  .contact-map {
+    min-height: 25rem;
+    background: #e8ebe7;
+  }
+
+  .contact-map iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 25rem;
+  }
+
+  .contact-card__button-label--mobile {
+    display: none;
+  }
+
+  @media (max-width: 47.999rem) {
+    .contact-card__actions {
+      gap: 0.65rem;
+    }
+
+    .contact-card__actions :global(.button[data-size="large"]) {
+      gap: 0.45rem;
+      padding-inline: 0.65rem;
+      font-size: 0.98rem;
+    }
+
+    .contact-card__hours {
+      display: grid;
+      gap: 0.1rem;
+    }
+
+    .contact-card__button-label--desktop {
+      display: none;
+    }
+
+    .contact-card__button-label--mobile {
+      display: inline;
+    }
+
+    .contact-map,
+    .contact-map iframe {
+      min-height: 22.5rem;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .contact-page__grid {
+      grid-template-columns: minmax(20rem, 0.78fr) minmax(0, 1.22fr);
+      align-items: stretch;
+    }
+
+    .contact-map,
+    .contact-map iframe {
+      min-height: 34rem;
+    }
+  }
+</style>

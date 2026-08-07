@@ -1,0 +1,224 @@
+---
+import { Image } from "astro:assets";
+import type { Service } from "../../data/services";
+import ServiceIcon from "../home/ServiceIcon.astro";
+
+type Props = {
+  service: Service;
+  headingLevel?: "h2" | "h3";
+};
+
+const { service, headingLevel: Heading = "h2" } = Astro.props;
+const scopeItems = service.scopeItems.filter((item) => item !== service.title);
+---
+
+<article class="service-page-card">
+  <div class="service-page-card__media" aria-hidden="true">
+    <Image
+      src={service.image}
+      alt=""
+      widths={[420, 640, 840, 1100]}
+      sizes="(min-width: 64rem) 42vw, (min-width: 40rem) 50vw, 100vw"
+      loading="lazy"
+      decoding="async"
+      quality={82}
+      class="service-page-card__image"
+    />
+  </div>
+  <div class="service-page-card__shade" aria-hidden="true"></div>
+
+  <div class="service-page-card__content">
+    <header class="service-page-card__heading">
+      <span class="service-page-card__icon" aria-hidden="true">
+        <ServiceIcon kind={service.icon} />
+      </span>
+      <div>
+        <Heading>{service.title}</Heading>
+      </div>
+    </header>
+
+    <div class="service-page-card__details">
+      <p>{service.description}</p>
+
+      {
+        scopeItems.length > 0 && (
+          <ul
+            class="service-page-card__scope"
+            aria-label={`${service.title} kapsamı`}
+          >
+            {scopeItems.map((item) => (
+              <li><span aria-hidden="true">·</span>{item}</li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+  </div>
+</article>
+
+<style>
+  .service-page-card {
+    position: relative;
+    isolation: isolate;
+    height: 100%;
+    min-height: clamp(29rem, 42vw, 33rem);
+    overflow: hidden;
+    border: 1px solid rgb(226 198 106 / 44%);
+    border-radius: clamp(1rem, 2.2vw, 1.4rem);
+    background: var(--brand-navy);
+    color: var(--white);
+    box-shadow:
+      0 1.35rem 3.5rem rgb(5 18 38 / 18%),
+      inset 0 0 0 1px rgb(255 255 255 / 5%);
+  }
+
+  .service-page-card::before {
+    position: absolute;
+    z-index: 4;
+    top: 0;
+    right: 1.35rem;
+    left: 1.35rem;
+    height: 3px;
+    border-radius: 0 0 999px 999px;
+    background: linear-gradient(90deg, transparent, var(--brand-gold-soft), transparent);
+    content: "";
+  }
+
+  .service-page-card::after {
+    position: absolute;
+    z-index: 3;
+    inset: 0;
+    border: 1px solid rgb(255 255 255 / 9%);
+    border-radius: inherit;
+    content: "";
+    pointer-events: none;
+  }
+
+  .service-page-card__media,
+  .service-page-card__shade {
+    position: absolute;
+    inset: 0;
+  }
+
+  .service-page-card__media {
+    z-index: -2;
+    background: var(--brand-navy-2);
+  }
+
+  .service-page-card__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    scale: 1.015;
+    transition: scale 650ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .service-page-card__shade {
+    z-index: -1;
+    background:
+      linear-gradient(180deg, rgb(4 15 32 / 48%) 0%, rgb(4 15 32 / 16%) 30%, rgb(4 15 32 / 64%) 58%, rgb(4 15 32 / 97%) 100%),
+      linear-gradient(90deg, rgb(5 18 38 / 42%) 0%, transparent 72%),
+      radial-gradient(circle at 85% 12%, rgb(226 198 106 / 16%), transparent 30%);
+  }
+
+  .service-page-card__content {
+    display: flex;
+    min-height: inherit;
+    flex-direction: column;
+    padding: clamp(1.25rem, 3vw, 2rem);
+  }
+
+  .service-page-card__heading {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(0.8rem, 2vw, 1.1rem);
+  }
+
+  .service-page-card__icon {
+    display: grid;
+    width: clamp(3.35rem, 6vw, 4.15rem);
+    height: clamp(3.35rem, 6vw, 4.15rem);
+    place-items: center;
+    border: 1px solid rgb(226 198 106 / 54%);
+    border-radius: 1rem;
+    background: rgb(5 18 38 / 76%);
+    color: var(--brand-gold-soft);
+    box-shadow:
+      0 0.8rem 2rem rgb(0 0 0 / 20%),
+      inset 0 1px 0 rgb(255 255 255 / 10%);
+    backdrop-filter: blur(0.7rem);
+  }
+
+  .service-page-card h2,
+  .service-page-card h3 {
+    margin: 0;
+    color: var(--white);
+    font-family: var(--font-heading-family);
+    font-size: clamp(1.3rem, 1.12rem + 0.8vw, 1.9rem);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.13;
+    text-shadow: 0 0.2rem 1.1rem rgb(0 0 0 / 40%);
+  }
+
+  .service-page-card__details {
+    margin-top: auto;
+    padding-top: clamp(4.5rem, 10vw, 8rem);
+  }
+
+  .service-page-card__details > p {
+    max-width: 58ch;
+    margin: 0;
+    color: rgb(255 255 255 / 84%);
+    font-size: clamp(0.86rem, 0.8rem + 0.2vw, 0.98rem);
+    font-weight: 500;
+    line-height: 1.55;
+    text-shadow: 0 0.15rem 0.9rem rgb(0 0 0 / 58%);
+  }
+
+  .service-page-card__scope {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.48rem 0.9rem;
+    margin: 1rem 0 0;
+    padding: 1rem 0 0;
+    border-top: 1px solid rgb(255 255 255 / 18%);
+    list-style: none;
+  }
+
+  .service-page-card__scope li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.38rem;
+    color: rgb(255 255 255 / 92%);
+    font-size: clamp(0.73rem, 0.69rem + 0.16vw, 0.84rem);
+    font-weight: 650;
+    line-height: 1.35;
+    text-shadow: 0 0.12rem 0.7rem rgb(0 0 0 / 70%);
+  }
+
+  .service-page-card__scope li span {
+    color: var(--brand-gold-soft);
+    font-size: 1.3em;
+    font-weight: 900;
+    line-height: 0.95;
+  }
+
+  @media (max-width: 39.999rem) {
+    .service-page-card {
+      min-height: 31rem;
+    }
+
+    .service-page-card__details {
+      padding-top: 5rem;
+    }
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .service-page-card:hover .service-page-card__image {
+      scale: 1.055;
+    }
+  }
+</style>

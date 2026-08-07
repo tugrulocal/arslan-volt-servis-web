@@ -1,0 +1,55 @@
+---
+import { services } from "../../data/services";
+import Container from "../common/Container.astro";
+import ServiceCard from "../services/ServiceCard.astro";
+import SectionHeading from "../common/SectionHeading.astro";
+---
+
+<section class="service-grid" aria-labelledby="service-grid-title">
+  <Container>
+    <SectionHeading
+      eyebrow="Tüm Hizmet Alanları"
+      title="Hizmetlerimiz"
+      description="Elektrik ve tesisat işlerinden ev aletlerine kadar hizmet verdiğimiz kategorileri inceleyin."
+      id="service-grid-title"
+    />
+
+    <ul class="service-grid__list">
+      {
+        services.map((service) => (
+          <li><ServiceCard service={service} headingLevel="h3" /></li>
+        ))
+      }
+    </ul>
+  </Container>
+</section>
+
+<style>
+  .service-grid {
+    border-top: 1px solid var(--border);
+    background: var(--white);
+    padding-block: clamp(4.5rem, 9vw, 8rem);
+  }
+
+  .service-grid__list {
+    display: grid;
+    grid-auto-rows: 1fr;
+    gap: 1rem;
+    margin: clamp(2.5rem, 5vw, 4.25rem) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 40rem) {
+    .service-grid__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .service-grid__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.5rem;
+    }
+  }
+</style>

@@ -1,0 +1,390 @@
+---
+import { Image } from "astro:assets";
+import heroBanner from "../../assets/hero/arslanservis_dukkanherobanner.png";
+import {
+  getPhoneHref,
+  getWhatsAppHref,
+  siteConfig,
+} from "../../config/site";
+import Button from "../common/Button.astro";
+import ContactIcon from "../common/ContactIcon.astro";
+import Container from "../common/Container.astro";
+
+const phoneHref = getPhoneHref();
+const whatsappHref = getWhatsAppHref();
+---
+
+<section class="hero" data-hero aria-labelledby="hero-title">
+  <div class="hero__media" data-hero-media aria-hidden="true">
+    <Image
+      class="hero__image"
+      src={heroBanner}
+      alt=""
+      widths={[640, 960, 1280, 1600, 1672]}
+      sizes="100vw"
+      loading="eager"
+      decoding="async"
+      fetchpriority="high"
+      quality={84}
+    />
+    <div class="hero__shade"></div>
+  </div>
+
+  <Container class="hero__container">
+    <div class="hero__content">
+      <div class="hero__slogan-row">
+        <span class="hero__gold-line" data-hero-line aria-hidden="true"></span>
+        <p class="hero__slogan" data-hero-slogan>{siteConfig.slogan}</p>
+      </div>
+
+      <h1 id="hero-title" class="hero__title" data-hero-title>
+        Evinizdeki teknik sorunlara güvenilir çözüm.
+      </h1>
+
+      <p class="hero__categories" data-hero-categories>
+        Elektrik <span aria-hidden="true">•</span> Tesisat
+        <span aria-hidden="true">•</span> Kombi <span aria-hidden="true">•</span>
+        Klima <span aria-hidden="true">•</span> Ev Aletleri
+      </p>
+
+      <p class="hero__description" data-hero-description>
+        Teknik ihtiyacınızı paylaşın; size uygun hizmet adımını birlikte belirleyelim.
+      </p>
+
+      <p class="hero__hours" data-hero-hours>
+        <span class="hero__hours-dot" aria-hidden="true"></span>
+        <span class="hero__hours-copy">
+          <strong>{siteConfig.hours}</strong> arasında hizmetinizdeyiz.
+        </span>
+      </p>
+
+      <div class="hero__actions" data-hero-actions>
+        <span class="hero__action" data-hero-action>
+          <Button href={phoneHref} size="large" fullWidth>
+            <ContactIcon kind="phone" />
+            Hemen Ara
+          </Button>
+        </span>
+
+        <span class="hero__action" data-hero-action>
+          <Button
+            href={whatsappHref}
+            variant="outline"
+            tone="on-dark"
+            size="large"
+            fullWidth
+            external
+          >
+            <ContactIcon kind="whatsapp" />
+            <span class="hero__whatsapp-label hero__whatsapp-label--mobile">WhatsApp</span>
+            <span class="hero__whatsapp-label hero__whatsapp-label--desktop">WhatsApp'tan Yaz</span>
+          </Button>
+        </span>
+
+        <span class="hero__action hero__action--services" data-hero-action>
+          <Button href="/hizmetler" variant="text" tone="on-dark">
+            Hizmetleri İncele
+          </Button>
+        </span>
+
+        <span class="hero__action hero__action--location" data-hero-action>
+          <Button href="/iletisim" variant="text" tone="on-dark">
+            Neredeyiz?
+          </Button>
+        </span>
+      </div>
+    </div>
+  </Container>
+</section>
+
+<script>
+  import { gsap } from "gsap";
+
+  const hero = document.querySelector<HTMLElement>("[data-hero]");
+  const reduceMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+
+  if (hero && !reduceMotion) {
+    const context = gsap.context(() => {
+      const media = hero.querySelector<HTMLElement>("[data-hero-media]");
+      const line = hero.querySelector<HTMLElement>("[data-hero-line]");
+      const slogan = hero.querySelector<HTMLElement>("[data-hero-slogan]");
+      const title = hero.querySelector<HTMLElement>("[data-hero-title]");
+      const categories = hero.querySelector<HTMLElement>(
+        "[data-hero-categories]",
+      );
+      const description = hero.querySelector<HTMLElement>(
+        "[data-hero-description]",
+      );
+      const hours = hero.querySelector<HTMLElement>("[data-hero-hours]");
+      const actions = Array.from(
+        hero.querySelectorAll<HTMLElement>("[data-hero-action]"),
+      );
+      const contentItems = [slogan, title, categories, description, hours].filter(
+        (item): item is HTMLElement => item !== null,
+      );
+
+      gsap.set(contentItems, { autoAlpha: 0, y: 18 });
+      gsap.set(actions, { autoAlpha: 0, y: 14 });
+      gsap.set(line, { autoAlpha: 0, scaleX: 0, transformOrigin: "left center" });
+      gsap.set(media, { autoAlpha: 0, scale: 1.025 });
+
+      gsap
+        .timeline({ defaults: { ease: "power2.out" } })
+        .to(media, { autoAlpha: 1, scale: 1, duration: 0.7 }, 0)
+        .to(line, { autoAlpha: 1, scaleX: 1, duration: 0.45 }, 0.05)
+        .to(slogan, { autoAlpha: 1, y: 0, duration: 0.4 }, 0.08)
+        .to(title, { autoAlpha: 1, y: 0, duration: 0.55 }, 0.15)
+        .to(categories, { autoAlpha: 1, y: 0, duration: 0.4 }, 0.21)
+        .to(description, { autoAlpha: 1, y: 0, duration: 0.4 }, 0.25)
+        .to(hours, { autoAlpha: 1, y: 0, duration: 0.4 }, 0.29)
+        .to(
+          actions,
+          { autoAlpha: 1, y: 0, duration: 0.38, stagger: 0.06 },
+          0.35,
+        );
+    }, hero);
+
+    window.addEventListener("pagehide", () => context.revert(), { once: true });
+  }
+</script>
+
+<style>
+  .hero {
+    position: relative;
+    display: flex;
+    min-height: calc(100svh - var(--header-height));
+    align-items: flex-end;
+    overflow: clip;
+    background: var(--brand-navy);
+    color: var(--white);
+    isolation: isolate;
+  }
+
+  .hero__media {
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: clamp(17rem, 40svh, 22rem);
+    overflow: hidden;
+    background: var(--brand-navy-2);
+  }
+
+  .hero__image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 35% center;
+  }
+
+  .hero__shade {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgb(5 18 38 / 5%) 0%, rgb(5 18 38 / 16%) 52%, var(--brand-navy) 100%),
+      linear-gradient(90deg, rgb(5 18 38 / 24%), transparent 70%);
+    pointer-events: none;
+  }
+
+  :global(.hero__container) {
+    position: relative;
+    padding-block:
+      clamp(19rem, 44svh, 24rem)
+      2rem;
+  }
+
+  .hero__content {
+    max-width: 46rem;
+  }
+
+  .hero__slogan-row {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  .hero__gold-line {
+    width: clamp(2.5rem, 8vw, 4rem);
+    height: 2px;
+    flex: none;
+    background: var(--brand-gold);
+  }
+
+  .hero__slogan {
+    margin: 0;
+    color: var(--brand-gold-soft);
+    font-size: clamp(0.78rem, 0.73rem + 0.22vw, 0.95rem);
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .hero__title {
+    max-width: 14ch;
+    margin: 1rem 0 0;
+    color: var(--white);
+    font-size: clamp(2.35rem, 1.82rem + 2.65vw, 5rem);
+    letter-spacing: -0.035em;
+    text-shadow: 0 0.2rem 1.25rem rgb(0 0 0 / 40%);
+  }
+
+  .hero__categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.15rem 0.55rem;
+    margin: 1.15rem 0 0;
+    color: var(--brand-gold-soft);
+    font-weight: 750;
+  }
+
+  .hero__description {
+    max-width: 56ch;
+    margin: 0.85rem 0 0;
+    color: #e5e9ee;
+    font-size: clamp(1rem, 0.95rem + 0.22vw, 1.125rem);
+    text-shadow: 0 0.15rem 0.8rem rgb(0 0 0 / 34%);
+  }
+
+  .hero__hours {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    margin: 0.8rem 0 0;
+    color: #f3f5f7;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    text-shadow: 0 0.15rem 0.8rem rgb(0 0 0 / 40%);
+  }
+
+  .hero__hours strong {
+    color: var(--brand-gold-soft);
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  .hero__hours-copy {
+    min-width: 0;
+  }
+
+  .hero__hours-dot {
+    width: 0.48rem;
+    height: 0.48rem;
+    flex: none;
+    border-radius: 50%;
+    background: var(--brand-gold);
+    box-shadow: 0 0 0 0.25rem rgb(226 198 106 / 14%);
+    margin-top: 0.42rem;
+  }
+
+  .hero__actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+  }
+
+  .hero__action {
+    display: inline-flex;
+    min-width: 0;
+  }
+
+  .hero__action :global(.button) {
+    white-space: nowrap;
+  }
+
+  .hero__action :global(.button[data-size="large"]) {
+    gap: 0.45rem;
+    padding-inline: 0.75rem;
+    font-size: 0.98rem;
+  }
+
+  .hero__whatsapp-label--desktop {
+    display: none;
+  }
+
+  .hero__action--location {
+    justify-content: flex-end;
+  }
+
+  @media (min-width: 48rem) {
+    .hero {
+      min-height: calc(100svh - var(--header-height));
+      align-items: center;
+    }
+
+    .hero__media {
+      inset: 0;
+      height: auto;
+    }
+
+    .hero__image {
+      object-position: center;
+    }
+
+    .hero__shade {
+      background:
+        linear-gradient(90deg, rgb(5 18 38 / 94%) 0%, rgb(5 18 38 / 82%) 38%, rgb(5 18 38 / 36%) 68%, rgb(5 18 38 / 10%) 100%),
+        linear-gradient(0deg, rgb(5 18 38 / 74%) 0%, transparent 52%),
+        linear-gradient(180deg, rgb(5 18 38 / 34%) 0%, transparent 34%);
+    }
+
+    :global(.hero__container) {
+      padding-block: clamp(3.5rem, 8vw, 7rem);
+    }
+
+    .hero__content {
+      width: min(58%, 46rem);
+    }
+
+    .hero__title {
+      margin-top: 1.25rem;
+    }
+
+    .hero__categories {
+      margin-top: 1.4rem;
+    }
+
+    .hero__description {
+      margin-top: 1rem;
+    }
+
+    .hero__hours {
+      margin-top: 0.9rem;
+      font-size: 0.96rem;
+    }
+
+    .hero__actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 1.35rem;
+    }
+
+    .hero__action :global(.button[data-size="large"]) {
+      gap: 0.625rem;
+      padding-inline: 1.4rem;
+      font-size: 1.0625rem;
+    }
+
+    .hero__whatsapp-label--mobile {
+      display: none;
+    }
+
+    .hero__whatsapp-label--desktop {
+      display: inline;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero *,
+    .hero *::before,
+    .hero *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+</style>

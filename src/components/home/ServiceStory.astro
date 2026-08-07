@@ -1,0 +1,577 @@
+---
+import { Image } from "astro:assets";
+import { serviceStoryScenes } from "../../data/services";
+import Container from "../common/Container.astro";
+import SectionHeading from "../common/SectionHeading.astro";
+
+const sceneCount = serviceStoryScenes.length;
+const totalSceneLabel = String(sceneCount).padStart(2, "0");
+const storyScrollHeight = `${sceneCount * 48}vh`;
+---
+
+<section
+  class="service-story"
+  data-service-story
+  aria-labelledby="service-story-title"
+  style={`--story-scroll-height: ${storyScrollHeight}; --story-scene-count: ${sceneCount}`}
+>
+  <Container>
+    <header class="service-story__heading">
+      <SectionHeading
+        id="service-story-title"
+        eyebrow="Hizmet Alanları"
+        title="Evinizin her köşesinde yanınızdayız."
+        description="Kaydırdıkça değişen hizmet sahnelerini inceleyin; tüm kategorilere aşağıdaki hizmetler alanından da ulaşabilirsiniz."
+      />
+    </header>
+  </Container>
+
+  <div class="service-story__experience" data-story-experience>
+      <div class="service-story__stage">
+        <div class="service-story__panels">
+          {
+            serviceStoryScenes.map((scene, index) => (
+              <article
+                class="service-story__panel"
+                data-story-panel
+                data-active={index === 0 ? "true" : "false"}
+                aria-labelledby={`service-story-scene-${scene.id}`}
+              >
+                <div class="service-story__media">
+                  <Image
+                    src={scene.image}
+                    alt={scene.imageAlt}
+                    widths={[480, 768, 1200, 1600, 1672]}
+                    sizes="100vw"
+                    loading="lazy"
+                    decoding="async"
+                    quality={84}
+                    class="service-story__image"
+                  />
+                  <div class="service-story__shade" aria-hidden="true" />
+                </div>
+
+                <div class="service-story__copy">
+                  <div class="service-story__meta">
+                    <p>{scene.eyebrow}</p>
+                  </div>
+                  <h3
+                    id={`service-story-scene-${scene.id}`}
+                    aria-label={scene.title}
+                  >
+                    {
+                      scene.title.split(" · ").map((titlePart, partIndex) => (
+                        <>
+                          {partIndex > 0 && " "}
+                          <span class="service-story__title-unit">
+                            {
+                              partIndex > 0 && (
+                                <span
+                                  class="service-story__title-dot"
+                                  aria-hidden="true"
+                                >
+                                  ·
+                                </span>
+                              )
+                            }
+                            <span>{titlePart}</span>
+                          </span>
+                        </>
+                      ))
+                    }
+                  </h3>
+                  <p class="service-story__description">{scene.description}</p>
+                </div>
+              </article>
+            ))
+          }
+        </div>
+
+        <div class="service-story__controls" aria-hidden="true">
+          <div class="service-story__counter">
+            <strong data-story-current>01</strong>
+            <span>/ {totalSceneLabel}</span>
+          </div>
+
+          <div class="service-story__progress-track">
+            <span data-story-progress></span>
+          </div>
+
+          <span class="service-story__scroll-hint">Kaydırarak keşfedin</span>
+        </div>
+      </div>
+
+      <div class="service-story__steps" aria-hidden="true">
+        {serviceStoryScenes.map(() => <span data-story-step></span>)}
+      </div>
+  </div>
+</section>
+
+<script>
+  import { gsap } from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  document
+    .querySelectorAll<HTMLElement>("[data-service-story]")
+    .forEach((story) => {
+      const media = gsap.matchMedia();
+
+      media.add(
+        "(min-width: 64rem) and (prefers-reduced-motion: no-preference)",
+        () => {
+          let resizeFrame = 0;
+          const scrollTriggers: ScrollTrigger[] = [];
+          const panels = Array.from(
+            story.querySelectorAll<HTMLElement>("[data-story-panel]"),
+          );
+
+          const context = gsap.context(() => {
+            const steps = Array.from(
+              story.querySelectorAll<HTMLElement>("[data-story-step]"),
+            );
+            const current = story.querySelector<HTMLElement>(
+              "[data-story-current]",
+            );
+            const progress = story.querySelector<HTMLElement>(
+              "[data-story-progress]",
+            );
+
+            if (!panels.length || panels.length !== steps.length || !progress) {
+              return;
+            }
+
+            let activeIndex = -1;
+
+            const updatePanelAccess = (nextIndex: number) => {
+              panels.forEach((panel, index) => {
+                const isActive = index === nextIndex;
+                panel.dataset.active = isActive ? "true" : "false";
+                panel.inert = !isActive;
+                panel.setAttribute("aria-hidden", isActive ? "false" : "true");
+              });
+            };
+
+            const setActiveScene = (nextIndex: number, animate = true) => {
+              if (nextIndex === activeIndex) return;
+
+              const previousIndex = activeIndex;
+              updatePanelAccess(nextIndex);
+
+              if (current) {
+                current.textContent = String(nextIndex + 1).padStart(2, "0");
+              }
+
+              panels.forEach((panel, index) => {
+                gsap.set(panel, {
+                  zIndex:
+                    index === nextIndex ? 2 : index === previousIndex ? 1 : 0,
+                });
+              });
+
+              if (!animate) {
+                gsap.set(panels, {
+                  autoAlpha: 0,
+                  clipPath: "inset(5% 0% 0% 0%)",
+                  yPercent: 0,
+                  scale: 1.035,
+                });
+                gsap.set(panels[nextIndex], {
+                  autoAlpha: 1,
+                  clipPath: "inset(0% 0% 0% 0%)",
+                  yPercent: 0,
+                  scale: 1,
+                });
+              } else {
+                const direction = nextIndex > previousIndex ? 1 : -1;
+
+                if (previousIndex >= 0) {
+                  gsap.to(panels[previousIndex], {
+                    autoAlpha: 0,
+                    clipPath:
+                      direction > 0
+                        ? "inset(0% 0% 5% 0%)"
+                        : "inset(5% 0% 0% 0%)",
+                    yPercent: direction * -2.5,
+                    scale: 1.018,
+                    duration: 0.38,
+                    ease: "power2.out",
+                    overwrite: true,
+                  });
+                }
+
+                gsap.fromTo(
+                  panels[nextIndex],
+                  {
+                    autoAlpha: 0,
+                    clipPath:
+                      direction > 0
+                        ? "inset(7% 0% 0% 0%)"
+                        : "inset(0% 0% 7% 0%)",
+                    yPercent: direction * 4,
+                    scale: 1.045,
+                  },
+                  {
+                    autoAlpha: 1,
+                    clipPath: "inset(0% 0% 0% 0%)",
+                    yPercent: 0,
+                    scale: 1,
+                    duration: 0.68,
+                    ease: "power3.out",
+                    overwrite: true,
+                  },
+                );
+              }
+
+              activeIndex = nextIndex;
+            };
+
+            setActiveScene(0, false);
+            gsap.set(progress, { scaleX: 0, transformOrigin: "left center" });
+            story.dataset.enhanced = "true";
+
+            steps.forEach((step, index) => {
+              scrollTriggers.push(
+                ScrollTrigger.create({
+                  trigger: step,
+                  start: "top 56%",
+                  end: "bottom 44%",
+                  onEnter: () => setActiveScene(index),
+                  onEnterBack: () => setActiveScene(index),
+                }),
+              );
+            });
+
+            const progressTween = gsap.to(progress, {
+              scaleX: 1,
+              ease: "none",
+              scrollTrigger: {
+                trigger: story.querySelector<HTMLElement>(
+                  "[data-story-experience]",
+                ),
+                start: "top 60%",
+                end: "bottom 40%",
+                scrub: 0.2,
+              },
+            });
+
+            if (progressTween.scrollTrigger) {
+              scrollTriggers.push(progressTween.scrollTrigger);
+            }
+          }, story);
+
+          const refreshStory = () => {
+            window.cancelAnimationFrame(resizeFrame);
+            resizeFrame = window.requestAnimationFrame(() => {
+              ScrollTrigger.refresh();
+            });
+          };
+
+          window.addEventListener("resize", refreshStory, { passive: true });
+          refreshStory();
+
+          return () => {
+            window.removeEventListener("resize", refreshStory);
+            window.cancelAnimationFrame(resizeFrame);
+            scrollTriggers.forEach((trigger) => trigger.kill());
+            context.revert();
+            panels.forEach((panel, index) => {
+              panel.inert = false;
+              panel.removeAttribute("aria-hidden");
+              panel.dataset.active = index === 0 ? "true" : "false";
+            });
+            delete story.dataset.enhanced;
+          };
+        },
+      );
+
+      window.addEventListener("pagehide", () => media.revert(), { once: true });
+    });
+</script>
+
+<style>
+  .service-story {
+    overflow: clip;
+    background: #eef1ec;
+    padding-top: clamp(4.5rem, 9vw, 8rem);
+  }
+
+  .service-story__heading {
+    max-width: 56rem;
+  }
+
+  .service-story__experience {
+    width: 100%;
+    margin-top: clamp(2.5rem, 6vw, 5rem);
+  }
+
+  .service-story__panels {
+    display: grid;
+    gap: 0;
+  }
+
+  .service-story__panel {
+    position: relative;
+    min-height: calc(100svh - var(--header-height));
+    overflow: hidden;
+    background: var(--brand-navy);
+  }
+
+  .service-story__media {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background: var(--brand-navy-2);
+  }
+
+  .service-story__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 62% center;
+  }
+
+  .service-story__shade {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(0deg, rgb(5 18 38 / 96%) 0%, rgb(5 18 38 / 76%) 36%, rgb(5 18 38 / 28%) 68%, transparent 86%),
+      linear-gradient(90deg, rgb(5 18 38 / 42%) 0%, transparent 74%);
+    pointer-events: none;
+  }
+
+  .service-story__copy {
+    position: absolute;
+    z-index: 2;
+    right: 1rem;
+    bottom: 1.25rem;
+    left: 1rem;
+    max-width: 46rem;
+    color: var(--white);
+  }
+
+  .service-story__meta {
+    display: block;
+  }
+
+  .service-story__meta p {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 850;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .service-story__meta p {
+    color: var(--brand-gold-soft);
+  }
+
+  .service-story__copy h3 {
+    margin: 0.65rem 0 0;
+    color: var(--white);
+    font-size: clamp(1.8rem, 1.48rem + 1.35vw, 2.5rem);
+    line-height: 1.08;
+    text-wrap: balance;
+    text-shadow: 0 0.2rem 1.2rem rgb(0 0 0 / 32%);
+  }
+
+  .service-story__title-dot {
+    margin-inline: 0.18em;
+    color: var(--brand-gold-soft);
+  }
+
+  .service-story__title-unit {
+    display: inline-flex;
+    align-items: baseline;
+    white-space: nowrap;
+  }
+
+  .service-story__description {
+    max-width: 48ch;
+    margin: 0.85rem 0 0;
+    color: #e5e9ee;
+  }
+
+  .service-story__controls,
+  .service-story__steps {
+    display: none;
+  }
+
+  @media (min-width: 48rem) {
+    .service-story__panel {
+      min-height: calc(100svh - var(--header-height));
+    }
+
+    .service-story__copy {
+      right: max(1.5rem, calc((100vw - var(--content-max-width)) / 2 + 1.5rem));
+      bottom: 2rem;
+      left: max(1.5rem, calc((100vw - var(--content-max-width)) / 2 + 1.5rem));
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .service-story[data-enhanced="true"] {
+      padding-bottom: 0;
+    }
+
+    .service-story[data-enhanced="true"] .service-story__experience {
+      position: relative;
+      width: 100%;
+      min-height: calc(
+        var(--story-scroll-height) + 100svh - var(--header-height)
+      );
+    }
+
+    .service-story[data-enhanced="true"] .service-story__stage {
+      position: sticky;
+      z-index: 2;
+      top: var(--header-height);
+      width: 100%;
+      height: calc(100svh - var(--header-height));
+      overflow: hidden;
+      border: 0;
+      border-radius: 0;
+      background: var(--brand-navy);
+      box-shadow: none;
+    }
+
+    .service-story[data-enhanced="true"] .service-story__panels,
+    .service-story[data-enhanced="true"] .service-story__panel {
+      position: absolute;
+      inset: 0;
+    }
+
+    .service-story[data-enhanced="true"] .service-story__panels {
+      display: block;
+    }
+
+    .service-story[data-enhanced="true"] .service-story__panel {
+      overflow: hidden;
+      border: 0;
+      border-radius: 0;
+      background: var(--brand-navy);
+      box-shadow: none;
+    }
+
+    .service-story[data-enhanced="true"] .service-story__media {
+      position: absolute;
+      inset: 0;
+      aspect-ratio: auto;
+    }
+
+    .service-story[data-enhanced="true"] .service-story__shade {
+      background:
+        linear-gradient(90deg, rgb(5 18 38 / 88%) 0%, rgb(5 18 38 / 56%) 42%, transparent 72%),
+        linear-gradient(0deg, rgb(5 18 38 / 72%) 0%, transparent 48%);
+    }
+
+    .service-story[data-enhanced="true"] .service-story__copy {
+      position: absolute;
+      z-index: 2;
+      right: max(
+        2rem,
+        calc((100vw - var(--content-max-width)) / 2 + 2rem)
+      );
+      bottom: clamp(4.6rem, 8vh, 6rem);
+      left: max(
+        2rem,
+        calc((100vw - var(--content-max-width)) / 2 + 2rem)
+      );
+      max-width: 51rem;
+      padding: 0;
+      color: var(--white);
+    }
+
+    .service-story[data-enhanced="true"] .service-story__meta {
+      justify-content: flex-start;
+    }
+
+    .service-story[data-enhanced="true"] .service-story__meta p {
+      color: var(--brand-gold-soft);
+    }
+
+    .service-story[data-enhanced="true"] .service-story__copy h3 {
+      max-width: 28ch;
+      color: var(--white);
+      font-size: clamp(2.65rem, 2rem + 2.4vw, 4.6rem);
+      line-height: 1.03;
+      letter-spacing: -0.04em;
+      text-shadow: 0 0.25rem 1.5rem rgb(0 0 0 / 24%);
+    }
+
+    .service-story[data-enhanced="true"] .service-story__description {
+      max-width: 53ch;
+      color: #e5e9ee;
+      font-size: clamp(1rem, 0.94rem + 0.25vw, 1.15rem);
+    }
+
+    .service-story[data-enhanced="true"] .service-story__controls {
+      position: absolute;
+      z-index: 5;
+      right: max(
+        1.5rem,
+        calc((100vw - var(--content-max-width)) / 2 + 1.5rem)
+      );
+      bottom: 1.35rem;
+      left: max(
+        1.5rem,
+        calc((100vw - var(--content-max-width)) / 2 + 1.5rem)
+      );
+      display: grid;
+      grid-template-columns: auto minmax(8rem, 1fr) auto;
+      align-items: center;
+      gap: 1rem;
+      color: var(--white);
+    }
+
+    .service-story__counter {
+      display: flex;
+      min-width: 4.6rem;
+      align-items: baseline;
+      gap: 0.25rem;
+      font-family: var(--font-heading-family);
+    }
+
+    .service-story__counter strong {
+      color: var(--brand-gold-soft);
+      font-size: 1.15rem;
+    }
+
+    .service-story__counter span,
+    .service-story__scroll-hint {
+      color: #c6ced9;
+      font-size: 0.72rem;
+      font-weight: 750;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .service-story__progress-track {
+      height: 3px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgb(255 255 255 / 24%);
+    }
+
+    .service-story__progress-track span {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--brand-gold-soft);
+      scale: 0 1;
+      transform-origin: left center;
+    }
+
+    .service-story[data-enhanced="true"] .service-story__steps {
+      position: absolute;
+      z-index: 1;
+      inset: 0;
+      display: grid;
+      grid-template-rows: repeat(var(--story-scene-count), minmax(0, 1fr));
+      pointer-events: none;
+    }
+  }
+
+</style>

@@ -1,0 +1,38 @@
+---
+type Props = {
+  as?: "div" | "section" | "nav" | "header" | "footer";
+  width?: "default" | "narrow" | "wide";
+  class?: string;
+};
+
+const {
+  as: Tag = "div",
+  width = "default",
+  class: className,
+}: Props = Astro.props;
+---
+
+<Tag class:list={["container", className]} data-width={width}>
+  <slot />
+</Tag>
+
+<style>
+  .container {
+    width: min(calc(100% - 2rem), var(--content-max-width));
+    margin-inline: auto;
+  }
+
+  .container[data-width="narrow"] {
+    max-width: var(--content-narrow-width);
+  }
+
+  .container[data-width="wide"] {
+    max-width: var(--content-wide-width);
+  }
+
+  @media (min-width: 48rem) {
+    .container {
+      width: min(calc(100% - 3rem), var(--content-max-width));
+    }
+  }
+</style>

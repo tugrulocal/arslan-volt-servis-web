@@ -1,0 +1,141 @@
+---
+import Container from "../../components/common/Container.astro";
+import ContactCta from "../../components/services/ContactCta.astro";
+import ServiceCard from "../../components/services/ServiceCard.astro";
+import { siteConfig } from "../../config/site";
+import { services } from "../../data/services";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const pageTitle = `Hizmetlerimiz | ${siteConfig.name}`;
+const pageDescription =
+  "Elektrik, sıhhi tesisat, kombi ve ısıtma, klima ile ev aletleri hizmet kategorilerini inceleyin.";
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  canonicalPath="/hizmetler"
+>
+  <main id="main-content">
+    <section class="services-page-hero" aria-labelledby="services-page-title">
+      <Container>
+        <nav class="breadcrumb" aria-label="Sayfa yolu">
+          <ol>
+            <li><a href="/">Ana Sayfa</a></li>
+            <li aria-current="page">Hizmetlerimiz</li>
+          </ol>
+        </nav>
+
+        <div class="services-page-hero__content">
+          <p class="services-page-hero__eyebrow">Teknik Hizmet Alanları</p>
+          <h1 id="services-page-title">Hizmetlerimiz</h1>
+          <p class="services-page-hero__intro">{pageDescription}</p>
+        </div>
+      </Container>
+    </section>
+
+    <section class="services-catalog" aria-label="Hizmet kategorileri">
+      <Container>
+        <ul class="services-catalog__grid">
+          {
+            services.map((service) => (
+              <li><ServiceCard service={service} headingLevel="h2" /></li>
+            ))
+          }
+        </ul>
+      </Container>
+    </section>
+
+    <ContactCta />
+  </main>
+</BaseLayout>
+
+<style>
+  .services-page-hero {
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+    background:
+      radial-gradient(circle at 85% 20%, rgb(212 175 55 / 18%), transparent 30%),
+      linear-gradient(145deg, #eef1ec, var(--bg-warm));
+    padding-block: clamp(2rem, 5vw, 4rem) clamp(3.5rem, 7vw, 6rem);
+  }
+
+  .breadcrumb ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin: 0;
+    padding: 0;
+    color: var(--slate);
+    font-size: 0.85rem;
+    list-style: none;
+  }
+
+  .breadcrumb li + li::before {
+    margin-right: 0.45rem;
+    color: #9aa4b1;
+    content: "/";
+  }
+
+  .breadcrumb a {
+    color: var(--brand-navy);
+    text-underline-offset: 0.2em;
+  }
+
+  .services-page-hero__content {
+    max-width: 52rem;
+    margin-top: clamp(3rem, 8vw, 6rem);
+  }
+
+  .services-page-hero__eyebrow {
+    margin: 0 0 0.8rem;
+    color: var(--brand-gold);
+    font-size: 0.8rem;
+    font-weight: 850;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .services-page-hero h1 {
+    max-width: 12ch;
+    margin: 0;
+    color: var(--brand-navy);
+    font-size: clamp(3rem, 2.25rem + 3.5vw, 6rem);
+    letter-spacing: -0.045em;
+  }
+
+  .services-page-hero__intro {
+    max-width: 58ch;
+    margin: 1.25rem 0 0;
+    color: var(--slate);
+    font-size: clamp(1.05rem, 0.98rem + 0.3vw, 1.25rem);
+  }
+
+  .services-catalog {
+    background: var(--white);
+    padding-block: clamp(3rem, 7vw, 6rem);
+  }
+
+  .services-catalog__grid {
+    display: grid;
+    grid-auto-rows: 1fr;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 40rem) {
+    .services-catalog__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .services-catalog__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.5rem;
+    }
+  }
+</style>

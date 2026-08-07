@@ -1,0 +1,168 @@
+---
+type Props = {
+  href?: string;
+  variant?: "primary" | "secondary" | "outline" | "text";
+  tone?: "default" | "on-dark";
+  size?: "default" | "large";
+  type?: "button" | "submit" | "reset";
+  disabled?: boolean;
+  fullWidth?: boolean;
+  external?: boolean;
+  ariaLabel?: string;
+  title?: string;
+  class?: string;
+};
+
+const {
+  href,
+  variant = "primary",
+  tone = "default",
+  size = "default",
+  type = "button",
+  disabled = false,
+  fullWidth = false,
+  external = false,
+  ariaLabel,
+  title,
+  class: className,
+} = Astro.props;
+
+const classes = ["button", className];
+---
+
+{
+  href && !disabled ? (
+    <a
+      class:list={classes}
+      data-variant={variant}
+      data-tone={tone}
+      data-size={size}
+      data-full-width={fullWidth ? "true" : undefined}
+      href={href}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noreferrer" : undefined}
+      aria-label={ariaLabel}
+      title={title}
+    >
+      <slot />
+    </a>
+  ) : (
+    <button
+      class:list={classes}
+      data-variant={variant}
+      data-tone={tone}
+      data-size={size}
+      data-full-width={fullWidth ? "true" : undefined}
+      type={type}
+      disabled={disabled}
+      aria-label={ariaLabel}
+      title={title}
+    >
+      <slot />
+    </button>
+  )
+}
+
+<style>
+  .button {
+    display: inline-flex;
+    min-height: 3rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    border: 1px solid transparent;
+    border-radius: 0.75rem;
+    padding: 0.7rem 1.1rem;
+    font-weight: 750;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease,
+      color 160ms ease,
+      translate 160ms ease;
+  }
+
+  .button[data-size="large"] {
+    min-height: 3.5rem;
+    padding-inline: 1.4rem;
+    font-size: 1.0625rem;
+  }
+
+  .button[data-full-width="true"] {
+    width: 100%;
+  }
+
+  .button[data-variant="primary"] {
+    background: var(--brand-gold);
+    color: var(--brand-navy);
+  }
+
+  .button[data-variant="secondary"] {
+    background: var(--brand-navy);
+    color: var(--white);
+  }
+
+  .button[data-variant="outline"] {
+    border-color: var(--brand-navy);
+    background: transparent;
+    color: var(--brand-navy);
+  }
+
+  .button[data-variant="text"] {
+    min-height: 2.75rem;
+    padding-inline: 0;
+    color: var(--brand-navy);
+    text-decoration: underline;
+    text-decoration-color: var(--brand-gold);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.3em;
+  }
+
+  :global(.button[data-tone="on-dark"][data-variant="outline"]) {
+    border-color: rgb(255 255 255 / 48%);
+    color: var(--white);
+  }
+
+  :global(.button[data-tone="on-dark"][data-variant="text"]) {
+    color: var(--white);
+  }
+
+  .button:hover:not(:disabled) {
+    translate: 0 -1px;
+  }
+
+  .button[data-variant="primary"]:hover:not(:disabled) {
+    background: var(--brand-gold-soft);
+  }
+
+  .button[data-variant="secondary"]:hover:not(:disabled) {
+    background: var(--brand-navy-2);
+  }
+
+  .button[data-variant="outline"]:hover:not(:disabled) {
+    background: var(--brand-navy);
+    color: var(--white);
+  }
+
+  :global(.button[data-tone="on-dark"][data-variant="outline"]:hover:not(:disabled)) {
+    border-color: var(--white);
+    background: var(--white);
+    color: var(--brand-navy);
+  }
+
+  .button:disabled {
+    border-color: var(--border);
+    background: #e7e9e7;
+    color: #596270;
+    cursor: not-allowed;
+  }
+
+  .button :global(svg) {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex: none;
+  }
+</style>

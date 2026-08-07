@@ -1,0 +1,264 @@
+---
+import { Image } from "astro:assets";
+import Button from "../common/Button.astro";
+import ContactIcon from "../common/ContactIcon.astro";
+import Container from "../common/Container.astro";
+import horizontalLogo from "../../assets/brand/arslanvolt_navibarlogo.png";
+import {
+  getPhoneHref,
+  getWhatsAppHref,
+  siteConfig,
+} from "../../config/site";
+import { navigationItems } from "../../data/navigation";
+import MobileMenu from "./MobileMenu.astro";
+
+const currentPath = Astro.url.pathname.replace(/\/+$/, "") || "/";
+const phoneHref = getPhoneHref();
+const whatsappHref = getWhatsAppHref();
+
+const isCurrentPage = (href: string) =>
+  href === "/" ? currentPath === "/" : currentPath.startsWith(href);
+---
+
+<header class="site-header" data-site-header data-scrolled="false">
+  <Container class="navbar__container">
+    <nav class="navbar" aria-label="Ana navigasyon">
+      <a class="brand" href="/" aria-label={`${siteConfig.name} ana sayfa`}>
+        <Image
+          class="brand__logo"
+          src={horizontalLogo}
+          alt=""
+          width={460}
+          height={180}
+          loading="eager"
+          decoding="async"
+        />
+      </a>
+
+      <ul class="desktop-navigation">
+        {
+          navigationItems.map((item) => (
+            <li>
+              <a
+                class="desktop-navigation__link"
+                href={item.href}
+                aria-current={isCurrentPage(item.href) ? "page" : undefined}
+              >
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="desktop-contact">
+        <Button
+          href={phoneHref}
+          disabled={!phoneHref}
+          title={!phoneHref ? "Telefon bilgisi eklenecek" : undefined}
+        >
+          <ContactIcon kind="phone" />
+          Hemen Ara
+        </Button>
+      </div>
+
+      <div class="mobile-quick-contact" role="group" aria-label="Hızlı iletişim">
+        {
+          phoneHref && (
+            <a
+              class="mobile-quick-contact__link"
+              href={phoneHref}
+              aria-label="Telefonla ara"
+            >
+              <ContactIcon kind="phone" />
+            </a>
+          )
+        }
+        {
+          whatsappHref && (
+            <a
+              class="mobile-quick-contact__link"
+              href={whatsappHref}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="WhatsApp ile iletişime geç"
+            >
+              <ContactIcon kind="whatsapp" />
+            </a>
+          )
+        }
+      </div>
+
+      <MobileMenu />
+    </nav>
+  </Container>
+</header>
+
+<script>
+  const header = document.querySelector<HTMLElement>("[data-site-header]");
+
+  if (header) {
+    let updateScheduled = false;
+
+    const updateHeader = () => {
+      header.dataset.scrolled = window.scrollY > 16 ? "true" : "false";
+      updateScheduled = false;
+    };
+
+    const scheduleHeaderUpdate = () => {
+      if (updateScheduled) return;
+      updateScheduled = true;
+      window.requestAnimationFrame(updateHeader);
+    };
+
+    updateHeader();
+    window.addEventListener("scroll", scheduleHeaderUpdate, { passive: true });
+  }
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    z-index: 60;
+    top: 0;
+    min-height: var(--header-height);
+    border-bottom: 1px solid rgb(226 198 106 / 22%);
+    background: rgb(11 29 58 / 96%);
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease,
+      box-shadow 180ms ease;
+  }
+
+  .site-header[data-scrolled="true"] {
+    border-color: rgb(226 198 106 / 38%);
+    background: var(--brand-navy);
+    box-shadow: 0 0.45rem 1.5rem rgb(11 29 58 / 7%);
+  }
+
+  :global(.navbar__container) {
+    height: var(--header-height);
+  }
+
+  .navbar {
+    display: flex;
+    height: 100%;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .brand {
+    display: flex;
+    height: 100%;
+    min-width: 0;
+    align-items: center;
+    text-decoration: none;
+  }
+
+  .brand__logo {
+    display: block;
+    width: clamp(8rem, 37vw, 10rem);
+    height: auto;
+    object-fit: contain;
+  }
+
+  .desktop-navigation,
+  .desktop-contact {
+    display: none;
+  }
+
+  .mobile-quick-contact {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-left: auto;
+  }
+
+  .mobile-quick-contact__link {
+    display: grid;
+    width: 2.75rem;
+    height: 2.75rem;
+    place-items: center;
+    border-radius: 50%;
+    color: var(--white);
+    text-decoration: none;
+    transition:
+      background-color 160ms ease,
+      color 160ms ease,
+      scale 160ms ease;
+  }
+
+  .mobile-quick-contact__link :global(svg) {
+    width: 1.45rem;
+    height: 1.45rem;
+  }
+
+  .mobile-quick-contact__link:hover {
+    background: rgb(255 255 255 / 9%);
+    color: var(--brand-gold-soft);
+  }
+
+  .mobile-quick-contact__link:active {
+    scale: 0.94;
+  }
+
+  @media (min-width: 68rem) {
+    .navbar {
+      gap: clamp(1rem, 1.4vw, 1.75rem);
+    }
+
+    .desktop-navigation {
+      display: flex;
+      align-items: stretch;
+      align-self: stretch;
+      gap: clamp(0.2rem, 0.45vw, 0.55rem);
+      margin: 0 0 0 auto;
+      padding: 0;
+      list-style: none;
+    }
+
+    .desktop-navigation__link {
+      position: relative;
+      display: flex;
+      height: 100%;
+      align-items: center;
+      padding-inline: clamp(0.35rem, 0.55vw, 0.7rem);
+      color: var(--white);
+      font-size: 0.95rem;
+      font-weight: 720;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .desktop-navigation__link::after {
+      position: absolute;
+      right: 0.5rem;
+      bottom: 0.9rem;
+      left: 0.5rem;
+      height: 2px;
+      background: var(--brand-gold);
+      content: "";
+      scale: 0 1;
+      transition: scale 160ms ease;
+    }
+
+    .desktop-navigation__link:hover::after,
+    .desktop-navigation__link[aria-current="page"]::after {
+      scale: 1;
+    }
+
+    .desktop-navigation__link:hover,
+    .desktop-navigation__link[aria-current="page"] {
+      color: var(--brand-gold-soft);
+    }
+
+    .desktop-contact {
+      display: block;
+      flex: none;
+    }
+
+    .mobile-quick-contact {
+      display: none;
+    }
+  }
+</style>

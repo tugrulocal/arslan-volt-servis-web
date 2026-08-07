@@ -1,0 +1,19 @@
+---
+import { siteConfig } from "../config/site";
+import Container from "../components/common/Container.astro";
+import SectionHeading from "../components/common/SectionHeading.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title={`Çalışmalarımız | ${siteConfig.name}`}>
+  <main id="main-content" class="page-shell">
+    <Container>
+      <SectionHeading
+        level="h1"
+        eyebrow={siteConfig.name}
+        title="Çalışmalarımız"
+        description="Gerçek çalışma görselleri sağlandığında bu sayfaya eklenecek."
+      />
+    </Container>
+  </main>
+</BaseLayout>

@@ -1,0 +1,34 @@
+:root {
+  --brand-navy: #0b1d3a;
+  --brand-navy-2: #132a4a;
+  --brand-gold: #d4af37;
+  --brand-gold-soft: #e2c66a;
+  --bg-warm: #f7f7f2;
+  --white: #ffffff;
+  --charcoal: #171a1f;
+  --slate: #657080;
+  --border: #dce1e7;
+  --header-height: 5.5rem;
+  --font-heading-family: "Montserrat Variable", "Montserrat", ui-sans-serif, system-ui,
+    sans-serif;
+  --font-body-family: "Montserrat Variable", "Montserrat", ui-sans-serif, system-ui,
+    -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --content-max-width: 75rem;
+  --content-narrow-width: 48rem;
+  --content-wide-width: 87.5rem;
+  --shadow-soft: 0 1rem 3rem rgb(11 29 58 / 10%);
+}
+
+@theme inline {
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-navy-2: var(--brand-navy-2);
+  --color-brand-gold: var(--brand-gold);
+  --color-brand-gold-soft: var(--brand-gold-soft);
+  --color-warm: var(--bg-warm);
+  --color-white: var(--white);
+  --color-charcoal: var(--charcoal);
+  --color-slate: var(--slate);
+  --color-border: var(--border);
+  --font-heading: var(--font-heading-family);
+  --font-sans: var(--font-body-family);
+}

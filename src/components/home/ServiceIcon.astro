@@ -1,0 +1,84 @@
+---
+import type { ServiceIconKind } from "../../data/services";
+
+type Props = {
+  kind: ServiceIconKind;
+};
+
+const { kind } = Astro.props;
+---
+
+<svg
+  class="service-icon"
+  viewBox="0 0 48 48"
+  fill="none"
+  aria-hidden="true"
+  focusable="false"
+>
+  {
+    kind === "electric" && (
+      <path d="M28 4 11 27h12l-2 17 17-25H26l2-15Z" />
+    )
+  }
+  {
+    kind === "plumbing" && (
+      <>
+        <path d="M24 4c6 9 12 16 12 25a12 12 0 0 1-24 0c0-9 6-16 12-25Z" />
+        <path d="M18 31c1.5 3.5 4.5 5 8 4" />
+      </>
+    )
+  }
+  {
+    kind === "heating" && (
+      <path d="M27 4c1 8-5 10-3 16 3-3 6-6 6-10 7 7 10 14 8 22-2 8-9 13-17 12S7 37 9 29c1-6 5-11 10-15-1 5 1 9 4 11-1-8 1-15 4-21Z" />
+    )
+  }
+  {
+    kind === "climate" && (
+      <>
+        <path d="M24 5v38M8 14l32 20M8 34l32-20" />
+        <path d="m20 9 4-4 4 4M20 39l4 4 4-4M11 20l-3-6 7-1M33 35l7-1-3-6M15 35l-7-1 3-6M37 20l3-6-7-1" />
+      </>
+    )
+  }
+  {
+    kind === "kitchen" && (
+      <>
+        <rect x="7" y="8" width="34" height="32" rx="4" />
+        <path d="M7 19h34M14 13h1M20 13h1" />
+        <circle cx="24" cy="29" r="6" />
+      </>
+    )
+  }
+  {
+    kind === "cleaning" && (
+      <>
+        <rect x="9" y="5" width="30" height="38" rx="5" />
+        <path d="M9 15h30M16 10h1M22 10h1" />
+        <circle cx="24" cy="29" r="9" />
+        <path d="M19 29c2-2 4 2 6 0s4 2 5 0" />
+      </>
+    )
+  }
+  {
+    kind === "small-appliances" && (
+      <>
+        <path d="M13 36h22l-2-19H15l-2 19Z" />
+        <path d="M18 17v-4a6 6 0 0 1 12 0v4M10 40h28M24 7V4" />
+        <path d="M18 25h12" />
+      </>
+    )
+  }
+</svg>
+
+<style>
+  .service-icon {
+    display: block;
+    width: 2rem;
+    height: 2rem;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+</style>
