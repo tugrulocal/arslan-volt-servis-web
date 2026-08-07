@@ -8,7 +8,7 @@ const { reviews, unavailable } = await getPublicReviews({
   verifiedOnly: true,
   limit: 3,
 });
-const carouselGroups = reviews.length > 1 ? Array.from({ length: 5 }) : [0];
+const carouselGroups = reviews.length > 1 ? [0, 1] : [0];
 ---
 
 <section class="home-reviews" aria-labelledby="home-reviews-title">
@@ -23,7 +23,7 @@ const carouselGroups = reviews.length > 1 ? Array.from({ length: 5 }) : [0];
     {
       reviews.length > 0 ? (
         <div class="home-reviews__carousel" data-home-reviews-carousel>
-          <div class="home-reviews__viewport" data-carousel-viewport tabindex="0" aria-label="Son müşteri yorumları">
+          <div class="home-reviews__viewport" tabindex="0" aria-label="Son müşteri yorumları">
             <ul class="home-reviews__list" data-carousel-track data-loop={reviews.length > 1 ? "true" : "false"}>
               {carouselGroups.map((_, groupIndex) => (
                 <li class="home-reviews__group" aria-hidden={groupIndex > 0 ? "true" : undefined}>
@@ -54,102 +54,6 @@ const carouselGroups = reviews.length > 1 ? Array.from({ length: 5 }) : [0];
     </div>
   </Container>
 </section>
-
-<script>
-  const carousel = document.querySelector<HTMLElement>("[data-home-reviews-carousel]");
-  const viewport = carousel?.querySelector<HTMLElement>("[data-carousel-viewport]");
-  const track = carousel?.querySelector<HTMLElement>("[data-carousel-track]");
-
-  if (carousel && viewport && track) {
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const groups = Array.from(track.children).filter((child) =>
-      child.classList.contains("home-reviews__group"),
-    ) as HTMLElement[];
-    const middleGroupIndex = Math.max(1, Math.floor(groups.length / 2));
-    const canLoop = track.dataset.loop === "true" && groups.length >= 5 && !prefersReducedMotion;
-    let groupWidth = 0;
-    let isPaused = false;
-    let interactionTimer: number | undefined;
-    let frameId: number | undefined;
-    let lastFrameTime = 0;
-
-    const measure = () => {
-      const firstGroup = groups[0];
-      const secondGroup = groups[1];
-      groupWidth = firstGroup && secondGroup
-        ? secondGroup.offsetLeft - firstGroup.offsetLeft
-        : firstGroup?.scrollWidth || 0;
-
-      if (canLoop && groupWidth > 0) {
-        viewport.scrollLeft = groupWidth * middleGroupIndex;
-      }
-    };
-
-    const normalizeScrollPosition = () => {
-      if (!canLoop || groupWidth <= 0) return;
-
-      if (viewport.scrollLeft < groupWidth) {
-        viewport.scrollLeft += groupWidth;
-      } else if (viewport.scrollLeft >= groupWidth * (groups.length - 2)) {
-        viewport.scrollLeft -= groupWidth;
-      }
-    };
-
-    const pauseTemporarily = () => {
-      isPaused = true;
-      if (interactionTimer) window.clearTimeout(interactionTimer);
-      interactionTimer = window.setTimeout(() => {
-        isPaused = carousel.matches(":hover") || carousel.matches(":focus-within");
-      }, 1400);
-    };
-
-    const animate = (time: number) => {
-      const elapsed = lastFrameTime ? time - lastFrameTime : 16;
-      lastFrameTime = time;
-
-      if (!isPaused && canLoop && groupWidth > 0) {
-        viewport.scrollLeft += (elapsed / 1000) * 18;
-        normalizeScrollPosition();
-      }
-
-      frameId = window.requestAnimationFrame(animate);
-    };
-
-    carousel.addEventListener("mouseenter", () => {
-      isPaused = true;
-    });
-    carousel.addEventListener("mouseleave", () => {
-      isPaused = carousel.matches(":focus-within");
-    });
-    viewport.addEventListener("focusin", () => {
-      isPaused = true;
-    });
-    viewport.addEventListener("focusout", () => {
-      isPaused = carousel.matches(":hover");
-    });
-    viewport.addEventListener("scroll", normalizeScrollPosition, { passive: true });
-
-    ["pointerdown", "wheel", "touchstart", "keydown"].forEach((eventName) => {
-      viewport.addEventListener(eventName, pauseTemporarily, { passive: true });
-    });
-    ["pointerup", "pointercancel", "touchend"].forEach((eventName) => {
-      viewport.addEventListener(eventName, pauseTemporarily, { passive: true });
-    });
-
-    window.requestAnimationFrame(measure);
-    window.setTimeout(measure, 350);
-    window.addEventListener("resize", measure);
-    frameId = window.requestAnimationFrame(animate);
-
-    const cleanup = () => {
-      if (frameId) window.cancelAnimationFrame(frameId);
-      if (interactionTimer) window.clearTimeout(interactionTimer);
-    };
-
-    document.addEventListener("astro:before-swap", cleanup, { once: true });
-    window.addEventListener("pagehide", cleanup, { once: true });
-  }
-</script>
 
 <style>
   .home-reviews {
@@ -186,12 +90,10 @@ const carouselGroups = reviews.length > 1 ? Array.from({ length: 5 }) : [0];
   }
 
   .home-reviews__viewport {
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
+    overflow: hidden;
     margin-block: -1rem;
-    padding-block: 1rem;
-    scrollbar-width: thin;
-    scrollbar-color: rgb(11 29 58 / 26%) transparent;
+    margin-inline: -0.75rem;
+    padding: 1rem 0.75rem;
   }
 
   .home-reviews__viewport:focus-visible {
@@ -213,6 +115,17 @@ const carouselGroups = reviews.length > 1 ? Array.from({ length: 5 }) : [0];
     gap: 0;
   }
 
+  .home-reviews__list[data-loop="true"] {
+    animation: home-reviews-marquee 34s linear infinite;
+    will-change: transform;
+  }
+
+  .home-reviews__carousel:hover .home-reviews__list,
+  .home-reviews__carousel:focus-within .home-reviews__list,
+  .home-reviews__carousel:active .home-reviews__list {
+    animation-play-state: paused;
+  }
+
   .home-reviews__group ul {
     padding-right: 1rem;
   }
@@ -227,6 +140,16 @@ const carouselGroups = reviews.length > 1 ? Array.from({ length: 5 }) : [0];
 
   .home-reviews__group > ul > li {
     flex: 0 0 min(76vw, 18.5rem);
+  }
+
+  @keyframes home-reviews-marquee {
+    from {
+      transform: translate3d(0, 0, 0);
+    }
+
+    to {
+      transform: translate3d(-50%, 0, 0);
+    }
   }
 
   :global(.home-reviews .review-card) {
@@ -312,9 +235,8 @@ const carouselGroups = reviews.length > 1 ? Array.from({ length: 5 }) : [0];
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .home-reviews__viewport {
-      scroll-behavior: auto;
+    .home-reviews__list[data-loop="true"] {
+      animation: none;
     }
-
   }
 </style>
