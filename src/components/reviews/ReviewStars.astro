@@ -1,0 +1,26 @@
+---
+type Props = {
+  rating: number;
+  label?: string;
+};
+
+const { rating, label = `${rating} / 5 yıldız` } = Astro.props;
+const safeRating = Math.max(0, Math.min(5, Math.round(rating)));
+---
+
+<span class="review-stars" aria-label={label}>
+  <span aria-hidden="true">
+    {"★".repeat(safeRating)}{"☆".repeat(5 - safeRating)}
+  </span>
+</span>
+
+<style>
+  .review-stars {
+    display: inline-flex;
+    color: var(--brand-gold);
+    font-size: 1.05rem;
+    line-height: 1;
+    letter-spacing: 0.08em;
+  }
+</style>
+

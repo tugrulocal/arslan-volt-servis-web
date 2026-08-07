@@ -1,0 +1,287 @@
+---
+import Button from "../common/Button.astro";
+import Container from "../common/Container.astro";
+import ReviewCard from "./ReviewCard.astro";
+import ReviewStars from "./ReviewStars.astro";
+import { getPublicReviews } from "../../lib/reviews/public";
+
+const { reviews, summary, unavailable } = await getPublicReviews({
+  verifiedOnly: true,
+  limit: 3,
+});
+---
+
+<section class="home-reviews" aria-labelledby="home-reviews-title">
+  <Container>
+    <div class="home-reviews__header">
+      <div>
+        <p class="home-reviews__eyebrow">Müşteri yorumları</p>
+        <h2 id="home-reviews-title">Hizmeti alanların deneyimi</h2>
+      </div>
+
+      {
+        summary.verifiedAverage && (
+          <div class="home-reviews__summary" aria-label={`Doğrulanmış ortalama puan ${summary.verifiedAverage}`}>
+            <strong>{summary.verifiedAverage.toLocaleString("tr-TR")}</strong>
+            <ReviewStars rating={Math.round(summary.verifiedAverage)} />
+            <span>{summary.verifiedCount} doğrulanmış yorum</span>
+          </div>
+        )
+      }
+    </div>
+
+    {
+      reviews.length > 0 ? (
+        <div class="home-reviews__carousel" data-home-reviews-carousel>
+          <div class="home-reviews__viewport" data-carousel-viewport tabindex="0" aria-label="Son müşteri yorumları">
+            <ul class="home-reviews__list" data-carousel-track data-loop={reviews.length > 1 ? "true" : "false"}>
+              <li class="home-reviews__group">
+                <ul>
+                  {reviews.map((review) => (
+                    <li><ReviewCard review={review} /></li>
+                  ))}
+                </ul>
+              </li>
+              {reviews.length > 1 && (
+                <li class="home-reviews__group" aria-hidden="true">
+                  <ul>
+                    {reviews.map((review) => (
+                      <li><ReviewCard review={review} /></li>
+                    ))}
+                  </ul>
+                </li>
+              )}
+              {reviews.length > 1 && (
+                <li class="home-reviews__group" aria-hidden="true">
+                  <ul>
+                    {reviews.map((review) => (
+                      <li><ReviewCard review={review} /></li>
+                    ))}
+                  </ul>
+                </li>
+              )}
+            </ul>
+          </div>
+        </div>
+      ) : (
+        <div class="home-reviews__empty">
+          <p>
+            {unavailable
+              ? "Yorum sistemi şu an yapılandırma bekliyor; site içeriği ve iletişim kanalları çalışmaya devam ediyor."
+              : "Henüz yayınlanmış doğrulanmış yorum yok. İlk gerçek yorumlar eklendiğinde burada görünecek."}
+          </p>
+        </div>
+      )
+    }
+
+    <div class="home-reviews__actions">
+      <Button href="/yorumlar" variant="secondary">Tüm Yorumları Gör</Button>
+      <Button href="/yorumlar#yorum-yap" variant="outline">Yorum Yap</Button>
+    </div>
+  </Container>
+</section>
+
+<script>
+  const carousel = document.querySelector<HTMLElement>("[data-home-reviews-carousel]");
+  const viewport = carousel?.querySelector<HTMLElement>("[data-carousel-viewport]");
+  const track = carousel?.querySelector<HTMLElement>("[data-carousel-track]");
+
+  if (carousel && viewport && track) {
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const groups = Array.from(track.querySelectorAll<HTMLElement>(":scope > .home-reviews__group"));
+    const canLoop = track.dataset.loop === "true" && groups.length >= 3 && !prefersReducedMotion;
+    let groupWidth = 0;
+    let isPaused = false;
+    let interactionTimer: number | undefined;
+    let frameId: number | undefined;
+
+    const measure = () => {
+      groupWidth = groups[0]?.getBoundingClientRect().width || 0;
+      if (canLoop && groupWidth > 0) viewport.scrollLeft = groupWidth;
+    };
+
+    const normalizeScrollPosition = () => {
+      if (!canLoop || groupWidth <= 0) return;
+
+      if (viewport.scrollLeft <= 1) {
+        viewport.scrollLeft += groupWidth;
+      } else if (viewport.scrollLeft >= groupWidth * 2) {
+        viewport.scrollLeft -= groupWidth;
+      }
+    };
+
+    const pauseTemporarily = () => {
+      isPaused = true;
+      if (interactionTimer) window.clearTimeout(interactionTimer);
+      interactionTimer = window.setTimeout(() => {
+        isPaused = carousel.matches(":hover") || carousel.matches(":focus-within");
+      }, 1400);
+    };
+
+    const animate = () => {
+      if (!isPaused && canLoop && groupWidth > 0) {
+        viewport.scrollLeft -= 0.28;
+        normalizeScrollPosition();
+      }
+
+      frameId = window.requestAnimationFrame(animate);
+    };
+
+    carousel.addEventListener("mouseenter", () => {
+      isPaused = true;
+    });
+    carousel.addEventListener("mouseleave", () => {
+      isPaused = carousel.matches(":focus-within");
+    });
+    viewport.addEventListener("focusin", () => {
+      isPaused = true;
+    });
+    viewport.addEventListener("focusout", () => {
+      isPaused = carousel.matches(":hover");
+    });
+    viewport.addEventListener("scroll", normalizeScrollPosition, { passive: true });
+
+    ["pointerdown", "wheel", "touchstart", "keydown"].forEach((eventName) => {
+      viewport.addEventListener(eventName, pauseTemporarily, { passive: true });
+    });
+    ["pointerup", "pointercancel", "touchend"].forEach((eventName) => {
+      viewport.addEventListener(eventName, pauseTemporarily, { passive: true });
+    });
+
+    measure();
+    window.addEventListener("resize", measure);
+    frameId = window.requestAnimationFrame(animate);
+
+    document.addEventListener("astro:before-swap", () => {
+      if (frameId) window.cancelAnimationFrame(frameId);
+      if (interactionTimer) window.clearTimeout(interactionTimer);
+    }, { once: true });
+  }
+</script>
+
+<style>
+  .home-reviews {
+    border-top: 1px solid var(--border);
+    background:
+      linear-gradient(180deg, rgb(247 247 242 / 94%), rgb(255 255 255 / 92%)),
+      var(--bg-warm);
+    padding-block: clamp(4.5rem, 8vw, 7rem);
+  }
+
+  .home-reviews__header {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .home-reviews__eyebrow {
+    margin: 0 0 0.55rem;
+    color: var(--brand-gold);
+    font-size: 0.82rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .home-reviews h2 {
+    max-width: 44rem;
+    margin: 0;
+    color: var(--brand-navy);
+    font-size: clamp(2rem, 4vw, 3.4rem);
+  }
+
+  .home-reviews__summary {
+    display: grid;
+    width: fit-content;
+    gap: 0.25rem;
+    border-left: 4px solid var(--brand-gold);
+    padding-left: 1rem;
+    color: var(--brand-navy);
+  }
+
+  .home-reviews__summary strong {
+    font-size: 2rem;
+    line-height: 1;
+  }
+
+  .home-reviews__summary span {
+    color: var(--slate);
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  .home-reviews__carousel {
+    margin: clamp(2rem, 5vw, 3.25rem) 0 0;
+  }
+
+  .home-reviews__viewport {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(11 29 58 / 26%) transparent;
+  }
+
+  .home-reviews__viewport:focus-visible {
+    outline: 3px solid rgb(212 175 55 / 62%);
+    outline-offset: 0.35rem;
+  }
+
+  .home-reviews__list,
+  .home-reviews__group ul {
+    display: flex;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .home-reviews__list {
+    width: max-content;
+    gap: 0;
+  }
+
+  .home-reviews__group ul {
+    padding-right: 1rem;
+  }
+
+  .home-reviews__group > ul > li {
+    flex: 0 0 min(82vw, 22rem);
+  }
+
+  .home-reviews__empty {
+    margin-top: 2rem;
+    border: 1px dashed rgb(11 29 58 / 24%);
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+    color: var(--slate);
+    font-weight: 700;
+  }
+
+  .home-reviews__empty p {
+    margin: 0;
+  }
+
+  .home-reviews__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-top: 2rem;
+  }
+
+  @media (min-width: 48rem) {
+    .home-reviews__header {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+    }
+
+    .home-reviews__group > ul > li {
+      flex-basis: calc((min(100vw - 2rem, 76rem) - 2rem) / 3);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .home-reviews__viewport {
+      scroll-behavior: auto;
+    }
+
+  }
+</style>

@@ -17,6 +17,7 @@ export type ServiceIconKind =
   | "small-appliances";
 
 export type Service = {
+  id: string;
   title: string;
   description: string;
   icon: ServiceIconKind;
@@ -35,6 +36,7 @@ export type ServiceStoryScene = {
 
 export const services = [
   {
+    id: "electric",
     title: "Elektrik Tesisat İşleri",
     description:
       "Elektrik tesisatıyla ilgili ihtiyacınızı paylaşın; hizmet kapsamını birlikte netleştirelim.",
@@ -50,6 +52,7 @@ export const services = [
     ],
   },
   {
+    id: "plumbing",
     title: "Sıhhi Tesisat İşleri",
     description:
       "Sıhhi tesisatla ilgili ihtiyacınızı paylaşın; gerekli hizmet adımını birlikte belirleyelim.",
@@ -65,6 +68,7 @@ export const services = [
     ],
   },
   {
+    id: "heating-cooling",
     title: "Isıtma-Soğutma Sistemleri",
     description:
       "Isıtma ve soğutma sistemlerinizle ilgili ihtiyacınızı paylaşın; uygun hizmet kapsamını birlikte netleştirelim.",
@@ -80,6 +84,7 @@ export const services = [
     ],
   },
   {
+    id: "kitchen-appliances",
     title: "Mutfak Cihazları",
     description:
       "Fırın, ankastre, mikrodalga, aspiratör, davlumbaz veya ocak ihtiyacınızı paylaşın.",
@@ -95,6 +100,7 @@ export const services = [
     ],
   },
   {
+    id: "cleaning-appliances",
     title: "Temizlik Cihazları",
     description:
       "Elektrikli süpürge, robot süpürge veya buharlı temizleyici ihtiyacınızı paylaşın.",
@@ -107,6 +113,7 @@ export const services = [
     ],
   },
   {
+    id: "small-appliances",
     title: "Küçük Ev Aletleri",
     description:
       "Blender, mikser, tost makinesi, ütü, su sebili, çay makinesi veya kettle ihtiyacınızı paylaşın.",

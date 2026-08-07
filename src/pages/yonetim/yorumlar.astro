@@ -1,0 +1,434 @@
+---
+export const prerender = false;
+
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { normalizeSupabaseUrl, pickEnv } from "../../lib/env";
+
+const supabaseUrl = normalizeSupabaseUrl(
+  pickEnv(import.meta.env.PUBLIC_SUPABASE_URL, import.meta.env.SUPABASE_URL),
+);
+const publishableKey = pickEnv(
+  import.meta.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+  import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+  import.meta.env.SUPABASE_PUBLISHABLE_KEY,
+  import.meta.env.SUPABASE_ANON_KEY,
+);
+---
+
+<BaseLayout
+  title="Yorum Yönetimi | ARSLAN VOLT SERVİS"
+  description="ARSLAN VOLT SERVİS yorum yönetimi."
+  canonicalPath="/yonetim/yorumlar"
+  noindex
+>
+  <main id="main-content" class="admin-page" data-admin-app>
+    <section class="admin-shell">
+      <div class="admin-panel">
+        <div class="admin-panel__header">
+          <p>Yönetim</p>
+          <h1>Yorumlar</h1>
+          <span data-admin-status aria-live="polite">
+            {supabaseUrl && publishableKey ? "Giriş gerekli." : "Supabase public anahtarları eksik."}
+          </span>
+        </div>
+
+        <form class="admin-login" data-admin-login>
+          <label>
+            E-posta
+            <input name="email" type="email" autocomplete="email" required />
+          </label>
+          <label>
+            Şifre
+            <input name="password" type="password" autocomplete="current-password" required />
+          </label>
+          <button type="submit">Giriş Yap</button>
+        </form>
+
+        <div class="admin-toolbar" data-admin-toolbar hidden>
+          <label>
+            Durum
+            <select data-status-filter>
+              <option value="all">Tümü</option>
+              <option value="published">Yayında</option>
+              <option value="quarantined">Karantina</option>
+              <option value="hidden">Gizli</option>
+            </select>
+          </label>
+          <label>
+            Doğrulama
+            <select data-verification-filter>
+              <option value="all">Tümü</option>
+              <option value="unverified">Doğrulanmamış</option>
+              <option value="verified">Doğrulanmış</option>
+            </select>
+          </label>
+          <button type="button" data-refresh>Yenile</button>
+          <button type="button" data-sign-out>Çıkış</button>
+        </div>
+
+        <div class="admin-counts" data-admin-counts hidden></div>
+        <div class="admin-list" data-admin-list></div>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<script>
+  import { createClient } from "@supabase/supabase-js";
+
+  const normalizeSupabaseUrl = (value: string | undefined) => value?.replace(/\/rest\/v1\/?$/, "");
+  const pickEnv = (...values: Array<string | undefined>) => values.find((value) => Boolean(value));
+  const supabaseUrl = normalizeSupabaseUrl(
+    pickEnv(import.meta.env.PUBLIC_SUPABASE_URL, import.meta.env.SUPABASE_URL),
+  );
+  const publishableKey = pickEnv(
+    import.meta.env.PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    import.meta.env.SUPABASE_PUBLISHABLE_KEY,
+    import.meta.env.SUPABASE_ANON_KEY,
+  );
+  const app = document.querySelector<HTMLElement>("[data-admin-app]");
+  const loginForm = app?.querySelector<HTMLFormElement>("[data-admin-login]");
+  const toolbar = app?.querySelector<HTMLElement>("[data-admin-toolbar]");
+  const statusNode = app?.querySelector<HTMLElement>("[data-admin-status]");
+  const listNode = app?.querySelector<HTMLElement>("[data-admin-list]");
+  const countsNode = app?.querySelector<HTMLElement>("[data-admin-counts]");
+  const statusFilter = app?.querySelector<HTMLSelectElement>("[data-status-filter]");
+  const verificationFilter = app?.querySelector<HTMLSelectElement>("[data-verification-filter]");
+  const refreshButton = app?.querySelector<HTMLButtonElement>("[data-refresh]");
+  const signOutButton = app?.querySelector<HTMLButtonElement>("[data-sign-out]");
+  const supabase =
+    supabaseUrl && publishableKey ? createClient(supabaseUrl, publishableKey) : undefined;
+
+  const setStatus = (message: string) => {
+    if (statusNode) statusNode.textContent = message;
+  };
+
+  const getAccessToken = async () => {
+    const session = await supabase?.auth.getSession();
+    return session?.data.session?.access_token;
+  };
+
+  const apiFetch = async (path: string, init: RequestInit = {}) => {
+    const token = await getAccessToken();
+    return fetch(path, {
+      ...init,
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${token}`,
+        ...(init.headers || {}),
+      },
+    });
+  };
+
+  const escapeHtml = (value: unknown) =>
+    String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;");
+
+  const renderReviews = (reviews: any[]) => {
+    if (!listNode || !countsNode) return;
+
+    const published = reviews.filter((review) => review.visibility_status === "published").length;
+    const quarantined = reviews.filter((review) => review.visibility_status === "quarantined").length;
+    const hidden = reviews.filter((review) => review.visibility_status === "hidden").length;
+    const unverified = reviews.filter((review) => review.verification_status === "unverified").length;
+
+    countsNode.hidden = false;
+    countsNode.innerHTML = `
+      <span>Yayında: ${published}</span>
+      <span>Doğrulanmamış: ${unverified}</span>
+      <span>Karantina: ${quarantined}</span>
+      <span>Gizli: ${hidden}</span>
+    `;
+
+    if (reviews.length === 0) {
+      listNode.innerHTML = '<p class="admin-empty">Bu filtrede yorum yok.</p>';
+      return;
+    }
+
+    listNode.innerHTML = reviews
+      .map(
+        (review) => `
+          <article class="admin-review" data-review-id="${escapeHtml(review.id)}">
+            <div class="admin-review__meta">
+              <strong>${escapeHtml(review.public_name)}</strong>
+              <span>${escapeHtml(review.service_title)} · ${escapeHtml(review.rating)} yıldız</span>
+              <span>${escapeHtml(review.visibility_status)} · ${escapeHtml(review.verification_status)}</span>
+            </div>
+            <p>${escapeHtml(review.comment)}</p>
+            <dl>
+              <div><dt>Tam ad</dt><dd>${escapeHtml(review.full_name)}</dd></div>
+              <div><dt>Telefon</dt><dd>${escapeHtml(review.phone || "Saklama süresi dolmuş olabilir")}</dd></div>
+            </dl>
+            <textarea data-owner-reply rows="3" maxlength="700" placeholder="İşletme yanıtı">${escapeHtml(review.owner_reply || "")}</textarea>
+            <div class="admin-review__actions">
+              <button type="button" data-action="${review.verification_status === "verified" ? "unverify" : "verify"}">${review.verification_status === "verified" ? "Doğrulamayı Kaldır" : "Doğrula"}</button>
+              <button type="button" data-action="${review.visibility_status === "hidden" ? "restore" : "hide"}">${review.visibility_status === "hidden" ? "Geri Getir" : "Gizle"}</button>
+              <button type="button" data-action="${review.featured ? "unfeature" : "feature"}">${review.featured ? "Öne Çıkarmayı Kaldır" : "Öne Çıkar"}</button>
+              <button type="button" data-action="reply">Yanıtı Kaydet</button>
+              <button type="button" data-delete>Kalıcı Sil</button>
+            </div>
+          </article>
+        `,
+      )
+      .join("");
+  };
+
+  const loadReviews = async () => {
+    if (!supabase) return;
+    setStatus("Yorumlar yükleniyor...");
+
+    const params = new URLSearchParams({
+      status: statusFilter?.value || "all",
+      verification: verificationFilter?.value || "all",
+    });
+    const response = await apiFetch(`/api/admin/reviews?${params}`);
+    const result = await response.json();
+
+    if (!response.ok || !result.ok) {
+      setStatus(result.error || "Yorumlar yüklenemedi.");
+      return;
+    }
+
+    loginForm?.setAttribute("hidden", "true");
+    toolbar?.removeAttribute("hidden");
+    setStatus(`${result.count} yorum listeleniyor.`);
+    renderReviews(result.reviews || []);
+  };
+
+  loginForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!supabase) return;
+
+    const formData = new FormData(loginForm);
+    const email = String(formData.get("email") || "");
+    const password = String(formData.get("password") || "");
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      setStatus(`Giriş başarısız: ${error.message}`);
+      return;
+    }
+
+    await loadReviews();
+  });
+
+  listNode?.addEventListener("click", async (event) => {
+    const target = event.target as HTMLElement;
+    const card = target.closest<HTMLElement>("[data-review-id]");
+    if (!card) return;
+
+    const id = card.dataset.reviewId;
+    const actionButton = target.closest<HTMLButtonElement>("[data-action]");
+    const deleteButton = target.closest<HTMLButtonElement>("[data-delete]");
+
+    if (actionButton) {
+      const action = actionButton.dataset.action;
+      const ownerReply = card.querySelector<HTMLTextAreaElement>("[data-owner-reply]")?.value;
+      const response = await apiFetch("/api/admin/reviews", {
+        method: "PATCH",
+        body: JSON.stringify({ id, action, ownerReply }),
+      });
+      const result = await response.json();
+      setStatus(result.ok ? "İşlem kaydedildi." : result.error || "İşlem kaydedilemedi.");
+      if (result.ok) await loadReviews();
+    }
+
+    if (deleteButton) {
+      const confirmValue = window.prompt('Kalıcı silme için "KALICI SIL" yazın.');
+      if (confirmValue !== "KALICI SIL") return;
+
+      const response = await apiFetch("/api/admin/reviews", {
+        method: "DELETE",
+        body: JSON.stringify({ id, confirm: confirmValue }),
+      });
+      const result = await response.json();
+      setStatus(result.ok ? "Yorum kalıcı olarak silindi." : result.error || "Silinemedi.");
+      if (result.ok) await loadReviews();
+    }
+  });
+
+  refreshButton?.addEventListener("click", loadReviews);
+  statusFilter?.addEventListener("change", loadReviews);
+  verificationFilter?.addEventListener("change", loadReviews);
+  signOutButton?.addEventListener("click", async () => {
+    await supabase?.auth.signOut();
+    window.location.reload();
+  });
+
+  if (supabase) {
+    const session = await supabase.auth.getSession();
+    if (session.data.session) {
+      await loadReviews();
+    }
+  }
+</script>
+
+<style is:global>
+  .admin-page {
+    background: var(--bg-warm);
+    color: var(--charcoal);
+  }
+
+  .admin-shell {
+    width: min(calc(100% - 2rem), 76rem);
+    margin-inline: auto;
+    padding-block: clamp(2rem, 6vw, 4rem);
+  }
+
+  .admin-panel {
+    display: grid;
+    gap: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--white);
+    padding: clamp(1rem, 3vw, 1.5rem);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .admin-panel__header p,
+  .admin-panel__header h1 {
+    margin: 0;
+  }
+
+  .admin-panel__header p {
+    color: var(--brand-gold);
+    font-size: 0.82rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .admin-panel__header h1 {
+    color: var(--brand-navy);
+    font-size: clamp(2rem, 5vw, 3rem);
+  }
+
+  .admin-panel__header span {
+    display: block;
+    margin-top: 0.5rem;
+    color: var(--slate);
+    font-weight: 760;
+  }
+
+  .admin-login,
+  .admin-toolbar {
+    display: grid;
+    gap: 0.8rem;
+  }
+
+  .admin-login[hidden],
+  .admin-toolbar[hidden] {
+    display: none;
+  }
+
+  .admin-login label,
+  .admin-toolbar label {
+    display: grid;
+    gap: 0.35rem;
+    color: var(--brand-navy);
+    font-weight: 820;
+  }
+
+  .admin-login input,
+  .admin-toolbar select,
+  .admin-review textarea {
+    min-height: 3rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 0.7rem 0.85rem;
+  }
+
+  .admin-login button,
+  .admin-toolbar button,
+  .admin-review button {
+    min-height: 2.8rem;
+    border: 0;
+    border-radius: 0.5rem;
+    background: var(--brand-navy);
+    color: var(--white);
+    padding-inline: 0.85rem;
+    font-weight: 850;
+    cursor: pointer;
+  }
+
+  .admin-counts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .admin-counts span {
+    border-radius: 999px;
+    background: rgb(226 198 106 / 18%);
+    padding: 0.35rem 0.7rem;
+    color: var(--brand-navy);
+    font-size: 0.86rem;
+    font-weight: 820;
+  }
+
+  .admin-list {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .admin-review {
+    display: grid;
+    gap: 0.9rem;
+    border: 1px solid rgb(11 29 58 / 12%);
+    border-radius: 0.5rem;
+    background: var(--bg-warm);
+    padding: 1rem;
+  }
+
+  .admin-review__meta,
+  .admin-review dl,
+  .admin-review__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+  }
+
+  .admin-review p {
+    margin: 0;
+    color: var(--brand-navy);
+    font-weight: 680;
+  }
+
+  .admin-review dl {
+    margin: 0;
+    color: var(--slate);
+    font-size: 0.9rem;
+  }
+
+  .admin-review dd {
+    margin: 0;
+    color: var(--brand-navy);
+    font-weight: 760;
+  }
+
+  .admin-review textarea {
+    width: 100%;
+  }
+
+  .admin-empty {
+    margin: 0;
+    color: var(--slate);
+    font-weight: 760;
+  }
+
+  @media (min-width: 48rem) {
+    .admin-login {
+      grid-template-columns: 1fr 1fr auto;
+      align-items: end;
+    }
+
+    .admin-toolbar {
+      grid-template-columns: 12rem 12rem auto auto;
+      align-items: end;
+    }
+  }
+</style>

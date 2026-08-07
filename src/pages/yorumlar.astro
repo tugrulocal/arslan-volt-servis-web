@@ -1,0 +1,271 @@
+---
+export const prerender = false;
+
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Button from "../components/common/Button.astro";
+import Container from "../components/common/Container.astro";
+import ReviewCard from "../components/reviews/ReviewCard.astro";
+import ReviewForm from "../components/reviews/ReviewForm.astro";
+import ReviewStars from "../components/reviews/ReviewStars.astro";
+import { getPublicReviews } from "../lib/reviews/public";
+
+const cursor = Astro.url.searchParams.get("cursor");
+const submitState = Astro.url.searchParams.get("yorum");
+const { reviews, summary, nextCursor, unavailable } = await getPublicReviews({
+  cursor,
+  limit: 12,
+});
+---
+
+<BaseLayout
+  title="Müşteri Yorumları | ARSLAN VOLT SERVİS"
+  description="ARSLAN VOLT SERVİS için yayınlanmış müşteri yorumları ve yorum gönderme formu."
+  canonicalPath="/yorumlar"
+>
+  <main id="main-content">
+    <section class="reviews-hero">
+      <Container>
+        <div class="reviews-hero__content">
+          <p class="reviews-hero__eyebrow">Müşteri yorumları</p>
+          <h1>Hizmet deneyimlerini açıkça okuyun.</h1>
+          <p>
+            Yayınlanan yorumlarda ad tercihi korunur; telefon bilgisi hiçbir zaman halka açık gösterilmez.
+            Doğrulanan hizmetler ayrıca rozetle belirtilir.
+          </p>
+          {
+            summary.verifiedAverage && (
+              <div class="reviews-hero__summary">
+                <strong>{summary.verifiedAverage.toLocaleString("tr-TR")}</strong>
+                <ReviewStars rating={Math.round(summary.verifiedAverage)} />
+                <span>{summary.verifiedCount} doğrulanmış yorumun ortalaması</span>
+              </div>
+            )
+          }
+        </div>
+      </Container>
+    </section>
+
+    <section class="reviews-list" aria-labelledby="reviews-list-title">
+      <Container>
+        <div class="reviews-list__header">
+          <div>
+            <p class="reviews-list__eyebrow">Yayınlanmış yorumlar</p>
+            <h2 id="reviews-list-title">Son yorumlar</h2>
+          </div>
+          <Button href="#yorum-yap" variant="secondary">Yorum Yap</Button>
+        </div>
+
+        {
+          submitState === "alindi" && (
+            <p class="reviews-list__notice" role="status">
+              Yorumunuz doğrulanmamış etiketiyle yayınlandı.
+            </p>
+          )
+        }
+        {
+          submitState === "incelemede" && (
+            <p class="reviews-list__notice" role="status">
+              Yorumunuz güvenlik kontrolü için incelemeye alındı.
+            </p>
+          )
+        }
+        {
+          submitState === "hata" && (
+            <p class="reviews-list__notice" role="status">
+              Yorum gönderimi tamamlanamadı. Lütfen alanları kontrol edip tekrar deneyin.
+            </p>
+          )
+        }
+        {
+          unavailable && (
+            <p class="reviews-list__notice" role="status">
+              Yorum verilerine şu an ulaşılamıyor. İletişim kanalları çalışmaya devam ediyor.
+            </p>
+          )
+        }
+
+        {
+          reviews.length > 0 ? (
+            <ul class="reviews-list__grid">
+              {reviews.map((review) => (
+                <li><ReviewCard review={review} /></li>
+              ))}
+            </ul>
+          ) : (
+            <div class="reviews-list__empty">
+              <p>Henüz yayınlanmış yorum yok. İlk gerçek yorumlar eklendiğinde burada görünecek.</p>
+            </div>
+          )
+        }
+
+        {
+          nextCursor && (
+            <div class="reviews-list__pagination">
+              <Button href={`/yorumlar?cursor=${encodeURIComponent(nextCursor)}`} variant="outline">
+                Daha Eski Yorumlar
+              </Button>
+            </div>
+          )
+        }
+      </Container>
+    </section>
+
+    <section id="yorum-yap" class="reviews-form-section" aria-labelledby="review-form-title">
+      <Container width="narrow">
+        <div class="reviews-form-section__header">
+          <p class="reviews-form-section__eyebrow">Yorum yapın</p>
+          <h2 id="review-form-title">Deneyiminizi paylaşın</h2>
+          <p>
+            Geçerli yorumlar anında “Doğrulanmamış” etiketiyle yayınlanır. Telefon yalnız manuel doğrulama için alınır.
+          </p>
+        </div>
+        <ReviewForm />
+      </Container>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .reviews-hero {
+    background:
+      linear-gradient(135deg, rgb(11 29 58 / 96%), rgb(19 42 74 / 96%)),
+      var(--brand-navy);
+    color: var(--white);
+    padding-block: clamp(4rem, 8vw, 7rem);
+  }
+
+  .reviews-hero__content {
+    max-width: 48rem;
+  }
+
+  .reviews-hero__eyebrow,
+  .reviews-list__eyebrow,
+  .reviews-form-section__eyebrow {
+    margin: 0 0 0.55rem;
+    color: var(--brand-gold-soft);
+    font-size: 0.82rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .reviews-hero h1,
+  .reviews-list h2,
+  .reviews-form-section h2 {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 3.6rem);
+  }
+
+  .reviews-hero p,
+  .reviews-form-section p {
+    max-width: 42rem;
+    margin: 1rem 0 0;
+    color: rgb(255 255 255 / 80%);
+    font-weight: 600;
+  }
+
+  .reviews-hero__summary {
+    display: inline-grid;
+    gap: 0.35rem;
+    margin-top: 1.5rem;
+    border-left: 4px solid var(--brand-gold);
+    padding-left: 1rem;
+  }
+
+  .reviews-hero__summary strong {
+    font-size: 2.25rem;
+    line-height: 1;
+  }
+
+  .reviews-hero__summary span {
+    color: rgb(255 255 255 / 78%);
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  .reviews-list,
+  .reviews-form-section {
+    padding-block: clamp(4.5rem, 8vw, 7rem);
+  }
+
+  .reviews-list {
+    background: var(--bg-warm);
+  }
+
+  .reviews-list__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .reviews-list__eyebrow,
+  .reviews-form-section__eyebrow {
+    color: var(--brand-gold);
+  }
+
+  .reviews-list h2,
+  .reviews-form-section h2 {
+    color: var(--brand-navy);
+  }
+
+  .reviews-list__notice {
+    border-left: 4px solid var(--brand-gold);
+    background: var(--white);
+    padding: 0.9rem 1rem;
+    color: var(--brand-navy);
+    font-weight: 760;
+  }
+
+  .reviews-list__grid {
+    display: grid;
+    gap: 1rem;
+    margin: clamp(2rem, 5vw, 3rem) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .reviews-list__empty {
+    margin-top: 2rem;
+    border: 1px dashed rgb(11 29 58 / 24%);
+    border-radius: 0.5rem;
+    background: var(--white);
+    padding: 1.25rem;
+    color: var(--slate);
+    font-weight: 700;
+  }
+
+  .reviews-list__empty p {
+    margin: 0;
+  }
+
+  .reviews-list__pagination {
+    margin-top: 2rem;
+  }
+
+  .reviews-form-section {
+    border-top: 1px solid var(--border);
+    background: var(--white);
+  }
+
+  .reviews-form-section__header {
+    margin-bottom: 1.5rem;
+  }
+
+  .reviews-form-section p {
+    color: var(--slate);
+  }
+
+  @media (min-width: 48rem) {
+    .reviews-list__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 72rem) {
+    .reviews-list__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+</style>

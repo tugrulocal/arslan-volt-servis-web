@@ -6,6 +6,7 @@ export type NavigationItem = {
 export const navigationItems = [
   { label: "Ana Sayfa", href: "/" },
   { label: "Hizmetlerimiz", href: "/hizmetler" },
+  { label: "Yorumlar", href: "/yorumlar" },
   { label: "Hakkımızda", href: "/hakkimizda" },
   { label: "İletişim", href: "/iletisim" },
 ] satisfies NavigationItem[];

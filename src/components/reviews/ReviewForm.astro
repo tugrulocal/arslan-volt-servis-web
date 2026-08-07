@@ -1,0 +1,336 @@
+---
+import { reviewServiceOptions } from "../../lib/reviews/service-options";
+import { pickEnv } from "../../lib/env";
+import { createIdempotencyValue } from "../../lib/reviews/validation";
+
+const turnstileSiteKey = pickEnv(import.meta.env.PUBLIC_TURNSTILE_SITE_KEY);
+const idempotencyKey = createIdempotencyValue();
+---
+
+<form class="review-form" action="/api/reviews" method="post" data-review-form>
+  <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
+  <div class="review-form__trap" aria-hidden="true">
+    <label>
+      Web sitesi
+      <input name="company_website" tabindex="-1" autocomplete="off" />
+    </label>
+  </div>
+
+  <div class="review-form__status" data-form-status aria-live="polite">
+    {
+      !turnstileSiteKey &&
+        "Yorum gönderimi yayın ortamı anahtarları eklendiğinde aktif olacak."
+    }
+  </div>
+
+  <div class="review-form__grid">
+    <label class="review-field">
+      <span>Ad soyad</span>
+      <input name="fullName" autocomplete="name" required minlength="3" maxlength="80" />
+    </label>
+
+    <label class="review-field">
+      <span>Telefon <small>halka gösterilmez</small></span>
+      <input
+        name="phone"
+        type="tel"
+        autocomplete="tel"
+        inputmode="tel"
+        required
+        minlength="10"
+        maxlength="16"
+      />
+    </label>
+
+    <label class="review-field">
+      <span>Hizmet türü</span>
+      <select name="serviceId" required>
+        <option value="">Seçin</option>
+        {
+          reviewServiceOptions.map((service) => (
+            <option value={service.id}>{service.title}</option>
+          ))
+        }
+      </select>
+    </label>
+
+    <fieldset class="review-rating">
+      <legend>Puanınız</legend>
+      <div class="review-rating__options" role="radiogroup">
+        {[1, 2, 3, 4, 5].map((rating) => (
+          <label>
+            <input type="radio" name="rating" value={rating} required />
+            <span>{rating}</span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  </div>
+
+  <label class="review-field review-field--wide">
+    <span>Yorumunuz</span>
+    <textarea
+      name="comment"
+      required
+      minlength="20"
+      maxlength="700"
+      rows="6"
+      placeholder="Aldığınız hizmeti, iletişimi ve genel deneyiminizi yazabilirsiniz."
+    ></textarea>
+  </label>
+
+  <div class="review-form__checks">
+    <label>
+      <input type="checkbox" name="displayFullName" />
+      <span class="review-form__checkbox-copy">
+        Tam adım görünsün.
+        <span>(Seçilmezse ad ve soyadınızın yalnızca baş harfleri görünür.)</span>
+      </span>
+    </label>
+  </div>
+
+  {
+    turnstileSiteKey ? (
+      <div
+        class="cf-turnstile"
+        data-sitekey={turnstileSiteKey}
+        data-action="turnstile-spin-v2"
+        data-theme="light"
+      />
+    ) : (
+      <p class="review-form__notice">PUBLIC_TURNSTILE_SITE_KEY eklendiğinde güvenlik doğrulaması burada görünecek.</p>
+    )
+  }
+
+  <button class="review-form__submit" type="submit" disabled={!turnstileSiteKey}>
+    Yorumu Gönder
+  </button>
+</form>
+
+{turnstileSiteKey && <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}
+
+<script>
+  const form = document.querySelector<HTMLFormElement>("[data-review-form]");
+  const status = form?.querySelector<HTMLElement>("[data-form-status]");
+
+  const showStatus = (message: string, tone: "error" | "success" | "neutral") => {
+    if (!status) return;
+    status.textContent = message;
+    status.dataset.tone = tone;
+  };
+
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const submitButton = form.querySelector<HTMLButtonElement>('[type="submit"]');
+    submitButton?.setAttribute("disabled", "true");
+    showStatus("Yorum gönderiliyor...", "neutral");
+
+    try {
+      const response = await fetch(form.action, {
+        method: "POST",
+        body: new FormData(form),
+        headers: {
+          accept: "application/json",
+        },
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.ok) {
+        const errors = result.errors ? Object.values(result.errors) : [];
+        showStatus(String(errors[0] || "Yorum gönderilemedi."), "error");
+        window.turnstile?.reset();
+        return;
+      }
+
+      window.location.href =
+        result.status === "published"
+          ? "/yorumlar?yorum=alindi"
+          : "/yorumlar?yorum=incelemede";
+    } catch {
+      showStatus("Bağlantı kurulamadı. Lütfen tekrar deneyin.", "error");
+      window.turnstile?.reset();
+    } finally {
+      submitButton?.removeAttribute("disabled");
+    }
+  });
+</script>
+
+<style>
+  .review-form {
+    display: grid;
+    gap: 1.1rem;
+    border: 1px solid rgb(11 29 58 / 12%);
+    border-radius: 0.5rem;
+    background: var(--white);
+    padding: clamp(1rem, 3vw, 1.5rem);
+    box-shadow: 0 1.2rem 3rem rgb(11 29 58 / 9%);
+  }
+
+  .review-form__trap {
+    position: absolute;
+    left: -999rem;
+  }
+
+  .review-form__status {
+    min-height: 1.5rem;
+    color: var(--slate);
+    font-weight: 700;
+  }
+
+  .review-form__status[data-tone="success"] {
+    color: #176b3a;
+  }
+
+  .review-form__status[data-tone="error"] {
+    color: #9f1d1d;
+  }
+
+  .review-form__grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .review-field {
+    display: grid;
+    gap: 0.45rem;
+    color: var(--brand-navy);
+    font-weight: 820;
+  }
+
+  .review-field small {
+    color: var(--slate);
+    font-size: 0.78rem;
+    font-weight: 720;
+  }
+
+  .review-field input,
+  .review-field select,
+  .review-field textarea {
+    min-height: 3rem;
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--white);
+    padding: 0.75rem 0.85rem;
+    color: var(--charcoal);
+  }
+
+  .review-field textarea {
+    min-height: 10rem;
+    resize: vertical;
+  }
+
+  .review-rating {
+    display: grid;
+    gap: 0.45rem;
+    margin: 0;
+    border: 0;
+    padding: 0;
+  }
+
+  .review-rating legend {
+    color: var(--brand-navy);
+    font-weight: 820;
+  }
+
+  .review-rating__options {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(2.75rem, 1fr));
+    gap: 0.45rem;
+  }
+
+  .review-rating label {
+    cursor: pointer;
+  }
+
+  .review-rating input {
+    position: absolute;
+    opacity: 0;
+  }
+
+  .review-rating span {
+    display: grid;
+    min-height: 3rem;
+    place-items: center;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background: var(--bg-warm);
+    color: var(--brand-navy);
+    font-weight: 900;
+  }
+
+  .review-rating input:checked + span,
+  .review-rating input:focus-visible + span {
+    border-color: var(--brand-gold);
+    background: rgb(226 198 106 / 20%);
+    box-shadow: 0 0 0 3px rgb(212 175 55 / 18%);
+  }
+
+  .review-form__checks {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .review-form__checks label {
+    display: grid;
+    grid-template-columns: 1.25rem 1fr;
+    gap: 0.7rem;
+    align-items: start;
+    color: var(--charcoal);
+    font-size: 0.92rem;
+    font-weight: 650;
+  }
+
+  .review-form__checks input {
+    width: 1.15rem;
+    height: 1.15rem;
+    margin-top: 0.25rem;
+    accent-color: var(--brand-navy);
+  }
+
+  .review-form__checkbox-copy {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.2rem;
+  }
+
+  .review-form__checkbox-copy span {
+    color: var(--slate);
+    font-size: 0.86em;
+    font-style: italic;
+    font-weight: 600;
+  }
+
+  .review-form__notice {
+    margin: 0;
+    color: var(--slate);
+    font-size: 0.9rem;
+  }
+
+  .review-form__submit {
+    min-height: 3.25rem;
+    border: 0;
+    border-radius: 0.5rem;
+    background: var(--brand-gold);
+    color: var(--brand-navy);
+    font-weight: 900;
+    cursor: pointer;
+  }
+
+  .review-form__submit:hover:not(:disabled) {
+    background: var(--brand-gold-soft);
+  }
+
+  .review-form__submit:disabled {
+    background: #e3e5e3;
+    color: #667080;
+    cursor: not-allowed;
+  }
+
+  @media (min-width: 48rem) {
+    .review-form__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

@@ -1,0 +1,127 @@
+---
+import ReviewStars from "./ReviewStars.astro";
+import { formatReviewDate } from "../../lib/reviews/format";
+import type { ReviewPublic } from "../../lib/reviews/types";
+
+type Props = {
+  review: ReviewPublic;
+};
+
+const { review } = Astro.props;
+const isVerified = review.verificationStatus === "verified";
+---
+
+<article class="review-card">
+  <div class="review-card__topline">
+    <ReviewStars rating={review.rating} />
+    <span class="review-card__badge" data-verified={isVerified ? "true" : "false"}>
+      {isVerified ? "Doğrulanmış hizmet" : "Doğrulanmamış"}
+    </span>
+  </div>
+
+  <blockquote>
+    <p>{review.comment}</p>
+  </blockquote>
+
+  {
+    review.ownerReply && (
+      <div class="review-card__reply">
+        <p class="review-card__reply-label">İşletme yanıtı</p>
+        <p>{review.ownerReply}</p>
+      </div>
+    )
+  }
+
+  <footer>
+    <strong>{review.publicName}</strong>
+    <span>{review.serviceTitle}</span>
+    <time datetime={review.createdAt}>{formatReviewDate(review.createdAt)}</time>
+  </footer>
+</article>
+
+<style>
+  .review-card {
+    display: flex;
+    min-height: 100%;
+    flex-direction: column;
+    gap: 1.1rem;
+    border: 1px solid rgb(11 29 58 / 12%);
+    border-radius: 0.5rem;
+    background:
+      linear-gradient(180deg, rgb(255 255 255 / 96%), rgb(247 247 242 / 88%)),
+      var(--white);
+    padding: clamp(1.1rem, 2.4vw, 1.45rem);
+    box-shadow: 0 1rem 2.5rem rgb(11 29 58 / 8%);
+  }
+
+  .review-card__topline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .review-card__badge {
+    display: inline-flex;
+    min-height: 2rem;
+    align-items: center;
+    border: 1px solid rgb(11 29 58 / 14%);
+    border-radius: 999px;
+    padding: 0.25rem 0.7rem;
+    color: var(--slate);
+    font-size: 0.78rem;
+    font-weight: 800;
+  }
+
+  .review-card__badge[data-verified="true"] {
+    border-color: rgb(212 175 55 / 44%);
+    background: rgb(226 198 106 / 14%);
+    color: var(--brand-navy);
+  }
+
+  blockquote,
+  blockquote p,
+  footer p {
+    margin: 0;
+  }
+
+  blockquote {
+    color: var(--brand-navy);
+    font-size: clamp(1rem, 0.96rem + 0.18vw, 1.08rem);
+    font-weight: 620;
+    line-height: 1.65;
+  }
+
+  .review-card__reply {
+    border-left: 3px solid var(--brand-gold);
+    background: rgb(11 29 58 / 4%);
+    padding: 0.8rem 0.9rem;
+    color: var(--charcoal);
+  }
+
+  .review-card__reply p {
+    margin: 0.25rem 0 0;
+  }
+
+  .review-card__reply-label {
+    color: var(--brand-navy);
+    font-size: 0.78rem;
+    font-weight: 850;
+    text-transform: uppercase;
+  }
+
+  footer {
+    display: grid;
+    gap: 0.15rem;
+    margin-top: auto;
+    color: var(--slate);
+    font-size: 0.9rem;
+  }
+
+  footer strong {
+    color: var(--brand-navy);
+    font-size: 1rem;
+  }
+</style>
+

@@ -1,8 +1,11 @@
 ---
+export const prerender = false;
+
 import Hero from "../components/home/Hero.astro";
 import ServiceGrid from "../components/home/ServiceGrid.astro";
 import ServiceStory from "../components/home/ServiceStory.astro";
 import TrustStrip from "../components/home/TrustStrip.astro";
+import HomeReviews from "../components/reviews/HomeReviews.astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
@@ -12,5 +15,6 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     <TrustStrip />
     <ServiceStory />
     <ServiceGrid />
+    <HomeReviews />
   </main>
 </BaseLayout>
